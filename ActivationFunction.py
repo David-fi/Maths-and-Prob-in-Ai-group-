@@ -20,7 +20,7 @@ def simoidBackward(dout, cache):
     sig is just the sigmoid function hence why it equals cache
     '''
     sig = cache
-    dx = dout * sig * (1 - sig) #the derivative of the sigmoid function
+    dx = dout * sig * (1 - sig) #the derivative of the sigmoid function multiplied by the upstream gradient to get the proper flow of gradients
     return dx
 
 def reluForward(x):
