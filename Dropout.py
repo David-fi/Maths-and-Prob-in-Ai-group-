@@ -1,12 +1,12 @@
 import numpy as np
-
+    
 class Dropout:
     """
     Author: Abdelrahmane Bekhli
     Date: 2024-11-18
     Description: This class performs dropouts.
     """
-    def __init__(self, dropoutRate, seed=None):
+    def __init__(self, dropoutRate, mask=None, training=True, seed=None):
         """ 
         Initialize the Dropout layer. 
         Args: 
@@ -15,13 +15,14 @@ class Dropout:
         """
         if not (0 <= dropoutRate < 1):
             raise ValueError("Dropout rate must be between 0 and 1")
-        self.dropoutRate = dropoutRate
-        self.mask = None
-        self.training = True
+            self.dropoutRate = dropoutRate
+            self.mask = mask
+            self.training = training
         if seed is not None:
             np.random.seed(seed)
-    
-    def forward(self, x):
+            
+
+    def dropoutForward(self, x):
         """
         Forward pass for dropout.
         Args:
@@ -29,13 +30,16 @@ class Dropout:
         Returns:
             numpy array: Output after applying dropout.
         """
-        if self.training:
+        x = np.array(x)
+        
+        if self.training == True:
             self.mask = np.random.rand(*x.shape) > self.dropoutRate
             return x * self.mask / (1 - self.dropoutRate)
         else:
             return x
-    
-    def backward(self, dout):
+
+    @staticmethod
+    def dropoutBackward(self, dout):
         """
         Backward pass for dropout.
         Args:
@@ -45,16 +49,18 @@ class Dropout:
         """
         return dout * self.mask / (1 - self.dropoutRate)
     
-    def setMode(self, mode):
+    
+    @staticmethod
+    def setMode(mode):
         """
         Set the mode for the network: 'train' or 'test'
         Args:
             mode (str): Either 'train' or 'test'.
         """
         if mode == 'train':
-            self.training = True
+            Dropout.training = True
         elif mode == 'test':
-            self.training = False
+            Dropout.training = False
         else:
             raise ValueError("Mode can only be 'train' or 'test'")
-        self.mask = None # reset mask when changing modes
+        Dropout.mask = None # reset mask when changing modes
