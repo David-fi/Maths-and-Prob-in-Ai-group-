@@ -103,7 +103,7 @@ class NeuralNetwork:
         
         #FORWARD PASS:
             # calculates weighted sum of input to first hidden layer
-            # input_vector = input_vector.T
+            input_vector = input_vector.T
             output_vector1 = np.dot(self.weights_in_hidden, input_vector) #self.weights_in_hidden is a 2D array. input_vector is also a 2D array. So, their np.dot product, which is a matrix multiplication, will also be 2D array. Must DOUBLE-CHECK!
            
             # calculates activation function of input to first hidden layer
