@@ -15,11 +15,11 @@ class Dropout:
         """
         if not (0 <= dropoutRate < 1):
             raise ValueError("Dropout rate must be between 0 and 1")
-            self.dropoutRate = dropoutRate
-            self.mask = mask
-            self.training = training
         if seed is not None:
             np.random.seed(seed)
+        self.dropoutRate = dropoutRate
+        self.mask = mask
+        self.training = training
             
 
     def dropoutForward(self, x):
