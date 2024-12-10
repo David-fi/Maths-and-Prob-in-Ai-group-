@@ -3,7 +3,7 @@ import numpy as np
 class Dropout:
     """
     Author: Abdelrahmane Bekhli
-    Date: 2024-11-18
+    Date: 2024-18-11
     Description: This class performs dropouts.
     """
     def __init__(self, dropoutRate, mask=None, training=True, seed=None):
@@ -17,6 +17,7 @@ class Dropout:
             raise ValueError("Dropout rate must be between 0 and 1")
         if seed is not None:
             np.random.seed(seed)
+            
         self.dropoutRate = dropoutRate
         self.mask = mask
         self.training = training
@@ -30,8 +31,9 @@ class Dropout:
         Returns:
             numpy array: Output after applying dropout.
         """
-        x = np.array(x)
-        
+        if not isinstance(x, np.ndarray):
+            raise TypeError(f"Input must be a numpy array, but got {type(x).__name__}.")
+
         if self.training == True:
             self.mask = np.random.rand(*x.shape) > self.dropoutRate
             return x * self.mask / (1 - self.dropoutRate)
