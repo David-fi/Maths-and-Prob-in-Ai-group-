@@ -34,61 +34,122 @@ class NeuralNetwork:
                  no_of_hidden_layers,
                  no_of_in_units, 
                  no_of_out_units, 
-                 no_of_hidden_units: List[int], #List where each element is an integer representing the number of units/nodes in each hidden layer
                  learning_rate,
                  dropoutRate,
                  activation_function_class = ActivationFunction,
                  softmax_layer_class = SoftmaxLayer,
-                 dropout_class = Dropout): # when methods within the Dropout class are called, 
+                 dropout_class = Dropout, # when methods within the Dropout class are called, 
                                            # we will be able to specify the dropout rate, 
                                            # as the class Dropout takes dropoutRate as a 
                                            # parameter in the constructor
+                 no_of_hidden_units: np.ndarray = np.array([], dtype=int)):  #np.array where each element is an integer representing the number of units/nodes in each hidden layer
                                            
+
+
+                    
         self.no_of_hidden_layers = no_of_hidden_layers
         self.no_of_in_units = no_of_in_units
         self.no_of_out_units = no_of_out_units
-        self.no_of_hidden_units = no_of_hidden_units
         self.learning_rate = learning_rate 
         self.dropoutRate = dropoutRate
         self.activation_function_class = activation_function_class
-        self.softmax_layer_class = softmax_layer_class
+        self.softmax_layer_class = softmax_layer_class 
         self.dropout_class = dropout_class(dropoutRate=dropoutRate, mask=None, training=True)
-        self.create_weight_matrices(no_of_hidden_units)
+        self.no_of_hidden_units = no_of_hidden_units
+        self.create_weight_matrices()
     
     
         
-    def create_weight_matrices(self, no_of_hidden_units):
+    def create_weight_matrices(self):
         """ A method to initialize the weight matrices of the neural network"""
         
-        self.weights_hidden_hidden = [None]*len(no_of_hidden_units)
+       # self.weights_in_hidden = np.array([int]*len(no_of_hidden_units))
+        self.weights_in_hidden = np.zeros((self.no_of_in_units, self.no_of_hidden_units.size))
+       # self.weights_hidden_hidden = np.zeros((len(self.no_of_hidden_units), len(self.no_of_hidden_units)))
+       # self.weights_hidden_hidden = [None]*len(self.no_of_hidden_units) 
+       # self.weights_hidden_hidden = []*len(self.no_of_hidden_units) 
+        self.weights_hidden_hidden = [] 
+        self.weights_hidden_out = np.zeros((len(self.no_of_hidden_units), self.no_of_out_units))
+
         
         rad = 1 / np.sqrt(self.no_of_in_units)
         X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
         self.weights_in_hidden = X.rvs((self.no_of_hidden_units[0], 
                                        self.no_of_in_units))
         
-        for i in range(0, len(no_of_hidden_units) - 1):
-            rad = 1 / np.sqrt(self.no_of_hidden_units[i])
-            X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
-            self.weights_hidden_hidden[i] = X.rvs((self.no_of_hidden_units[i], 
-                                                self.no_of_hidden_units[i+1]))
+        for i in range(0, len(self.no_of_hidden_units) - 1):
+       #    self.weights_hidden_hidden = [self.weights_hidden_hidden[i]]*len(self.no_of_hidden_units)
+       #     self.weights_hidden_hidden = np.zeros((len(self.no_of_hidden_units) - 1,
+        #                                   self.no_of_hidden_units[i], 
+         #                                  self.no_of_hidden_units[i+1])) #chatGPT. FIND ALTERNATIVE LATER!
+            
+           # self.weights_hidden_hidden[i] = np.zeros((len(self.no_of_hidden_units[i]), len(self.no_of_hidden_units[i+1])))
+          # self.weights_hidden_hidden[i] = np.zeros((len(self.no_of_hidden_units), len(self.no_of_hidden_units)))
+          # self.weights_hidden_hidden[i] = np.zeros((self.no_of_hidden_units[i], self.no_of_hidden_units[i+1]))
+           
+
+           '''
+           rad = 1 / np.sqrt(self.no_of_hidden_units[i])
+           X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
+           self.weights_hidden_hidden[i] = X.rvs((self.no_of_hidden_units[i], 
+                                                       self.no_of_hidden_units[i+1]))
+           '''
+           
+           
+           rad = 1 / np.sqrt(self.no_of_hidden_units[i])
+           X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
+           self.weights_hidden_hidden_element = X.rvs((self.no_of_hidden_units[i+1], 
+                                                       self.no_of_hidden_units[i]))
+           self.weights_hidden_hidden.append(self.weights_hidden_hidden_element)
+           
+           print("self.weights_hidden_hidden[i]:", self.weights_hidden_hidden[i])
+           print("Type of self.weights_hidden_hidden[i]:", type(self.weights_hidden_hidden[i]))
+           
+           
+           print("self.weights_hidden_hidden:", self.weights_hidden_hidden)
+           print("Type of self.weights_hidden_hidden:", type(self.weights_hidden_hidden))
+           
+           
+           '''
+           rad = 1 / np.sqrt(self.no_of_hidden_units[i+1])
+           X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
+           self.weights_hidden_hidden[i] = X.rvs((self.no_of_hidden_units[i+1], 
+                                                       self.no_of_hidden_units[i]))
+           '''
         
-        rad = 1 / np.sqrt(self.no_of_hidden_units[len(no_of_hidden_units)-1])
+        
+        rad = 1 / np.sqrt(self.no_of_hidden_units[len(self.no_of_hidden_units)-1])
         X = truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
         self.weights_hidden_out = X.rvs((self.no_of_out_units, 
-                                        self.no_of_hidden_units[len(no_of_hidden_units)-1]))
+                                        self.no_of_hidden_units[len(self.no_of_hidden_units)-1]))
         
+           
+        print("AFTER LOOP self.weights_hidden_hidden:", self.weights_hidden_hidden)
+        print("AFTER LOOP Type of self.weights_hidden_hidden:", type(self.weights_hidden_hidden))        
+        
+           
     
-    
-    
-    def train(self, input_vector, target_vector, activation_function_string, epochs=100):
+    def train(self, input_vector, target_vector, activation_function_string_forward, activation_function_string_backward, epochs=100):
         # input_vector and target_vector can be tuple, list or ndarray
         
-        input_vector = np.array(input_vector).T # tuple
-        target_vector = np.array(target_vector).T
-        output_vector3 = [None]*len(self.weights_in_hidden)
+        input_vector = np.array(input_vector).T # 2D ndarray
+        target_vector = np.array(target_vector).T # 2D ndarray
+        
+        output_vector1 = np.zeros((len(self.weights_in_hidden), len(input_vector))) # 2D array with shape corresponding to that of the dot product it stores –– weighted sum of input to first hidden layer 
+        output_vector_hidden = np.zeros((len(self.weights_in_hidden), len(input_vector))) # 2D array with shape corresponding to that of the value returned by sigmoidForward and reluForward, which is a manipulation of the data within the input array provided as input (in this case, output_vector1) and therefore, also a 2D array (of the same dimensions as output_vector1). 
+                                                                                            # IMPORTANT!!! If this isn't enough, try forcing x withing method sigmoidForward and reluForward to be a 2D arra. currently, it forces it to be an array, but of undefined dimensions.
+       # dropout_output_vector_hidden = np.zeros((len(self.weights_in_hidden), len(input_vector)))
+        
+        output_vector3 = [None]*len(self.weights_hidden_hidden)
         output_vector_hidden_hidden = [None]*len(output_vector3)
         dropout_output_vector_hidden_hidden = [None]*len(output_vector_hidden_hidden)
+        
+        
+        # output_vector2 = np.zeros((len(self.weights_hidden_out), len(dropout_output_vector_hidden_hidden[len(self.weights_hidden_hidden)-1]))) 
+       # output_vector_network = np.zeros((len(self.weights_hidden_out), len(dropout_output_vector_hidden_hidden[len(self.weights_hidden_hidden)-1])))
+        
+        
+        
         dropout_output_vector_hidden_hidden_derivate = [None]*len(output_vector_hidden_hidden)
         tmp2hh = [None]*len(output_vector_hidden_hidden)
         hidden_errors = [None]*len(self.weights_hidden_hidden)
@@ -103,31 +164,67 @@ class NeuralNetwork:
         
         #FORWARD PASS:
             # calculates weighted sum of input to first hidden layer
-            input_vector = input_vector.T
+            # input_vector = input_vector.T SHOULD NOT TRANSPOSE A SECOND TIME -- error reported on last GitHub commit. FIX!
             output_vector1 = np.dot(self.weights_in_hidden, input_vector) #self.weights_in_hidden is a 2D array. input_vector is also a 2D array. So, their np.dot product, which is a matrix multiplication, will also be 2D array. Must DOUBLE-CHECK!
            
             # calculates activation function of input to first hidden layer
-            output_vector_hidden = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string, output_vector1) # Choose between using activation function sigmoid or ReLu during the forward pass
+            output_vector_hidden = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector1) # Choose between using activation function sigmoid or ReLu during the forward pass
            
             # calculate dropout of activation function of input to first hidden layer –– i.e. pass output_vector_hidden as input to droput layer. IMPORTANT! 
             self.dropout_class.setMode('train') 
             dropout_output_vector_hidden = self.dropout_class.dropoutForward(output_vector_hidden)
             
-                        
+            print("dropout_output_vector_hidden:", dropout_output_vector_hidden)
+            print("Type of dropout_output_vector_hidden:", type(dropout_output_vector_hidden))
+
             
+            print("self.weights_hidden_hidden[0]:", self.weights_hidden_hidden[0])
+            print("Type of self.weights_hidden_hidden[0]:", type(self.weights_hidden_hidden[0]))
+
             
+            #calculates weighted sum of first hidden layer to second hidden layer
+            #output_vector3[0] = np.zeros((len(self.weights_hidden_hidden[0]), dropout_output_vector_hidden))
+            output_vector3[0] = np.dot(self.weights_hidden_hidden[0], dropout_output_vector_hidden)
             
-            for j in range(0, len(self.weights_hidden_hidden)):
-                #calculates weighted sum of first hidden layer to last hidden layer
-                output_vector3[j] = np.dot(self.weights_hidden_hidden[j], dropout_output_vector_hidden) #self.weights_in_hidden is a 2D array. input_vector is also a 2D array. So, their np.dot product, which is a matrix multiplication, will also be 2D array. Must DOUBLE-CHECK!
+            # calculates activation function of first hidden layer to second hidden layer
+            output_vector_firstHidden_secondHidden = np.zeros((len(self.weights_hidden_hidden[0]), len(output_vector3[0]))) # REMOVE IF IT LEADS TO ERRORS
+            output_vector_firstHidden_secondHidden = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector3[0])
+            
+            # calculate dropout of activation function of first hidden layer to second hidden layer –– i.e. pass output_vector_firstHidden_secondHidden as input to droput layer. IMPORTANT!
+            self.dropout_class.setMode('train') 
+            dropout_output_vector_hidden_hidden[0] = self.dropout_class.dropoutForward(output_vector_firstHidden_secondHidden)
+                
+                
+                
+                
+            for j in range(1, len(self.weights_hidden_hidden)):
+                #calculates weighted sum of second hidden layer to last hidden layer
+               # output_vector3[j] = np.zeros((len(self.weights_hidden_hidden[j]), len(dropout_output_vector_hidden[j])))
+                output_vector3[j] = np.dot(self.weights_hidden_hidden[j], dropout_output_vector_hidden_hidden[j-1]) 
+                
+                # calculates activation function of second hidden layer to last hidden layer
+                output_vector_hidden_hidden[j] = np.zeros((len(self.weights_hidden_hidden[j]), len(output_vector3[j]))) # REMOVE IF IT LEADS TO ERRORS
+                output_vector_hidden_hidden[j] = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector3[j])
+                
+                # calculate dropout of activation function of second hidden layer to last hidden layer –– i.e. pass output_vector_hidden_hidden as input to droput layer. IMPORTANT!
+                self.dropout_class.setMode('train') 
+                dropout_output_vector_hidden_hidden[j] = self.dropout_class.dropoutForward(output_vector_hidden_hidden[j])
+                
+                
+                
+                '''
+                output_vector3[j] = np.dot(self.weights_hidden_hidden[j], dropout_output_vector_hidden_hidden[j]) #self.weights_in_hidden is a 2D array. input_vector is also a 2D array. So, their np.dot product, which is a matrix multiplication, will also be 2D array. Must DOUBLE-CHECK!
                 
                 # calculates activation function of first hidden layer to last hidden layer
-                output_vector_hidden_hidden[j] = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string, output_vector3[j]) # Choose between using activation function sigmoid or ReLu during the forward pass
+                output_vector_hidden_hidden[j] = np.zeros((len(self.weights_hidden_hidden[j]), len(output_vector3[j]))) # REMOVE IF IT LEADS TO ERRORS
+                output_vector_hidden_hidden[j] = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector3[j]) # Choose between using activation function sigmoid or ReLu during the forward pass
                 
                 # calculate dropout of activation function of hidden layers –– i.e. pass output_vector_hidden_hidden as input to droput layer. IMPORTANT!
                 self.dropout_class.setMode('train') 
+                # dropout_output_vector_hidden_hidden[j] = np.zeros((len(self.weights_hidden_hidden[j]), len(output_vector_hidden_hidden[j])))
                 dropout_output_vector_hidden_hidden[j] = self.dropout_class.dropoutForward(output_vector_hidden_hidden[j])
-             
+                '''
+                
             '''
             for j in range(len(self.weights_hidden_hidden)):
                 #calculates weighted sum of first hidden layer to last hidden layer
@@ -138,7 +235,7 @@ class NeuralNetwork:
                 
                 
                 # calculates activation function of first hidden layer to last hidden layer
-                output_vector_hidden_hidden = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string, output_vector3) # Choose between using activation function sigmoid or ReLu during the forward pass
+                output_vector_hidden_hidden = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector3) # Choose between using activation function sigmoid or ReLu during the forward pass
                 # calculate dropout of activation function of hidden layers –– i.e. pass output_vector_hidden_hidden as input to droput layer. IMPORTANT!
             
                 self.dropout_class.setMode('train') 
@@ -153,7 +250,7 @@ class NeuralNetwork:
             output_vector2 = np.dot(self.weights_hidden_out, dropout_output_vector_hidden_hidden[len(self.weights_hidden_hidden)-1]) # THE PROBLEM IS dropout_output_vector_hidden NOT BEING OF APPRORPIATE SHAPE and DIMENSION
            
             #calculates activation function of last hidden layer to output layer –– IS THIS NEEDED??? CHECK TUTORIAL ANSWERS
-            output_vector_network = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string, output_vector2) #Choose between using activation function sigmoid or ReLu during the forward pass
+            output_vector_network = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector2) #Choose between using activation function sigmoid or ReLu during the forward pass
             
             # calculate dropout of activation function of last hidden layer to output layer –– i.e. pass output_vector_nestwork as input to droput layer. IMPORTANT! 
             # IS THIS NEEDED??? CHECK TUTORIAL ANSWERS
@@ -162,26 +259,32 @@ class NeuralNetwork:
             
             
             #implement softmax as the last layer –– calculate the softmax of output layer after having aplied the other activation functions
-            softmax_output_vector_network = self.softmax_layer_class.softmaxForward(self, output_vector_network)
+            softmax_output_vector_network = self.softmax_layer_class.softmaxForward(output_vector_network)
         
         
         
         
         #BACKWARD PASS:
             # derivative of the activation functions of input to first hidden layer and of the output layer, which needs to be computed for later use in calculating hidden errors and weight updates 
-            output_vector_network_derivate = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string, output_vector_network) 
-            dropout_output_vector_hidden_derivate = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string, dropout_output_vector_hidden) 
+            output_vector_network_derivate = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string_backward, output_vector_network, output_vector_network, output_vector2) 
+            print("output_vector_network_derivate:", output_vector_network_derivate)
+            print("Type of doutput_vector_network_derivate:", type(output_vector_network_derivate))
+            # dropout_output_vector_hidden_derivate = self.dropout_class.dropoutBackward(dropout_output_vector_hidden) 
+            dropout_output_vector_hidden_derivate = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string_backward, dropout_output_vector_hidden, dropout_output_vector_hidden, output_vector_hidden) 
             
-            # implement softmax to calculate the gradient of the loss for the output layer of the network (result of forward pass).
+           # implement softmax to calculate the gradient of the loss for the output layer of the network (result of forward pass).
             # This represents the difference between predicted softmax probabilities and the target labels, to be used to update the
             # weighted sum of last hidden layer to output layer (i.e. compute the weight updates of the result of forward pass???)
             # during the backward pass...,
-            softmax_output_errors = self.softmax_layer_class.softmaxBackward(self, target_vector)
-            
+            softmax_output_errors = self.softmax_layer_class.softmaxBackward(softmax_output_vector_network, target_vector)
+            print("softmax_output_errors:", softmax_output_errors)
+            print("Type of softmax_output_errors:", type(softmax_output_errors))
+
             # ...starting with that from the last hidden layer to the output layer, as the backward pass computes weight updates and 
             # calculates hidden errors iterating from the last layer to the input layer, across all hidden layers in reverse order (i.e. backpropagation). Thus, compute 
             # Weight updates of last hidden layer to output layer, according to tutorial 6.3: DONE
             tmp = softmax_output_errors * output_vector_network_derivate
+           # tmp = np.dot(softmax_output_errors, output_vector_network_derivate)
             weight_update_hidden_output = self.learning_rate * np.dot(tmp, dropout_output_vector_hidden_hidden[len(self.weights_hidden_hidden)-1].T) 
 
 
@@ -189,7 +292,7 @@ class NeuralNetwork:
 
             for j in range(1, len(self.weights_hidden_hidden)-1):
                 # derivative of the activation function of first hidden layer to last hidden layer, which needs to be computed for later use in calculating hidden errors and weight updates 
-                dropout_output_vector_hidden_hidden_derivate[j] = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string, dropout_output_vector_hidden_hidden[j])
+                dropout_output_vector_hidden_hidden_derivate[j] = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string_backward, dropout_output_vector_hidden_hidden[j], dropout_output_vector_hidden_hidden[j], output_vector_hidden_hidden[j])
             # compute weight updates of last hidden layer to the first hidden layer. Although, tecnically, with this usage of j 
             # it would be from first hidden layer to the last hidden layer. Loop must iterate backwards to achieve "last hidden layer
             # to the first hidden layer" order. Which orderd is the correct one? For now, variable names may imply either order and 
@@ -208,12 +311,21 @@ class NeuralNetwork:
             # as opposed to directly using the activation function/output from the previous layer, as would be the case 
             # nowhere, I think, since we can't update the weights of output to soemthing else cause there is nothing else after output layer)
                 tmp2hh[j] = dropout_output_vector_hidden_hidden[j] * dropout_output_vector_hidden_hidden_derivate[j]
-                hidden_errors[j] = np.dot(self.weights_hidden_hidden.T, tmp2hh)
-                tmp3hh[j] = hidden_errors[j] * dropout_output_vector_hidden_hidden_derivate[j]
-                weight_update_hidden_hidden[j] = self.learning_rate * np.dot(tmp3hh, dropout_output_vector_hidden_hidden[j].T)
+                hidden_errors[j] = np.dot(self.weights_hidden_hidden[j].T, tmp2hh[j])
+               # tmp3hh[j] = hidden_errors[j] * dropout_output_vector_hidden_hidden_derivate[j]
+                tmp3hh[j] = np.dot(hidden_errors[j], dropout_output_vector_hidden_hidden_derivate[j].T)
+                weight_update_hidden_hidden[j] = self.learning_rate * (np.dot(tmp3hh[j], dropout_output_vector_hidden_hidden[j]))
+               # weight_update_hidden_hidden[j] = np.dot(self.learning_rate, (np.dot(tmp3hh[j], dropout_output_vector_hidden_hidden[j])))
+                print("weight_update_hidden_hidden[j]:", weight_update_hidden_hidden[j])
+                print("Type of weight_update_hidden_hidden[j]:", type(weight_update_hidden_hidden[j]))
+                
+                
+                print("weight_hidden_hidden[j]:", self.weights_hidden_hidden[j])
+                print("Type of weight_hidden_hidden[j]:", type(self.weights_hidden_hidden[j]))
+                
                 
                 # update the weights
-                self.weights_hidden_hidden[j] += weight_update_hidden_hidden[j] #DONE
+                self.weights_hidden_hidden[j] += weight_update_hidden_hidden[j] #DONE 
 
             # compute weight updates of input layer to first hidden layer -- copy from tutorial, not adapted to multiple layers, probably wrong.
             # weight_update_input_hidden = self.learning_rate * np.dot(softmax_output_errors, dropout_output_vector_hidden.T)
@@ -249,7 +361,7 @@ class NeuralNetwork:
             # where tmp = same as tmp originally, which is softmaxOfTheWholeNetwork (since softMax is only applied once) X whichActivationFunctionBackwardPass (i.e. derivate of activation function, meaning backward whether sigmoid or relu)
             # (it is only later, after the hidden errors have been calculated, that tmp is overwriten)
             hidden_errors = np.dot(self.weights_hidden_out.T, softmax_output_errors)
-            derivative_output = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string, output_vector_hidden)  
+            derivative_output = self.activation_function_class.whichActivationFunctionBackwardPass(activation_function_string_backward, output_vector_hidden)  
             
             self.dropout_class.setMode(self, 'train')
             tmp = self.dropout_class.dropoutBackward(hidden_errors * derivative_output)
@@ -264,22 +376,22 @@ class NeuralNetwork:
 
 
 
-    def run(self, input_vector, activation_function_string):
+    def run(self, input_vector, activation_function_string_forward):
         # input_vector can be tuple, list or ndarray
         input_vector = np.array(input_vector, ndmin=2).T
         output_vector = [None]*len(input_vector)
         
         output_vector = np.dot(self.weights_in_hidden, input_vector)
-        output_vector = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string, output_vector)
+        output_vector = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector)
         
         # may be wrong... if it fails try logic from forward pass 
         for i in range(0, len(self.weights_hidden_hidden)):
             output_vector = np.dot(self.weights_hidden_hidden[i], output_vector)
-            output_vector = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string, output_vector)
+            output_vector = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector)
         
         
         output_vector = np.dot(self.weights_hidden_out, output_vector)
-        output_vector = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string, output_vector)
+        output_vector = self.activation_function_class.whichActivationFunctionForwardPass(activation_function_string_forward, output_vector)
         
         return output_vector.T
     
@@ -294,81 +406,3 @@ class NeuralNetwork:
     
     # Training in batches: 
         
-        
-    #TESTING:
-'''
-X, y = make_blobs(n_samples=60000, n_features=3072, centers=((1, 1,1), (5, 5,5)), cluster_std = 2)
-
-#X = StandardScaler().fit_transform(X)
-ax = plt.subplot(projection='3d')
-ax.scatter3D( X[:,0], X[:,1], X[:,2], c=y)
-
-#y = np.reshape(y,(-1,1))
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
-X_train = X_train.T
-
-simple_network = NeuralNetwork(no_of_hidden_layers=5,
-                               no_of_in_units=3, 
-                               no_of_out_units=1, 
-                               no_of_hidden_units=[4, 5, 6, 3, 2],
-                               learning_rate=0.01,
-                               dropoutRate=0.5,
-                               activation_function_class=ActivationFunction,
-                               softmax_layer_class = SoftmaxLayer,
-                               dropout_class = Dropout)
-
-simple_network.train(X_train, y_train, "sigmoidForward", epochs=100)
-
-#y_hat = simple_network.run(X_test)
-
-#y_hat[y_hat >0.5]=1
-#y_hat[y_hat<0.5] =0
-#print(sum(y_hat==y_test)/len(y_hat))
-
-
-#ax = plt.subplot(projection='3d')
-#ax.scatter3D( X_test[:,0], X_test[:,1], X_test[:,2], c=y_hat)
-
-#plt.hist(y_hat)
-plt.show()
-'''
-       
-'''   
-# Test from tutorial. Needs to be adapted.    
-X, y = make_blobs( n_samples=5000, n_features=3, centers=((1, 1,1), (5, 5,5)), cluster_std = 2)
-
-X = StandardScaler().fit_transform(X)
-ax = plt.subplot(projection='3d')
-ax.scatter3D( X[:,0], X[:,1], X[:,2], c=y)
-
-y = np.reshape(y,(-1,1))
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.30)
-
-simple_network = NeuralNetwork(no_of_hidden_layers=5,
-                               no_of_in_units=3, 
-                               no_of_out_units=1, 
-                               no_of_hidden_units=[4, 5, 6, 3, 2],
-                               learning_rate=0.01,
-                               dropoutRate=0.5,
-                               activation_function_class=ActivationFunction,
-                               softmax_layer_class = SoftmaxLayer,
-                               dropout_class = Dropout)
-
-simple_network.train(X_train, y_train, "sigmoidForward", epochs=100)
-
-#y_hat = simple_network.run(X_test)
-
-#y_hat[y_hat >0.5]=1
-#y_hat[y_hat<0.5] =0
-#print(sum(y_hat==y_test)/len(y_hat))
-
-
-#ax = plt.subplot(projection='3d')
-#ax.scatter3D( X_test[:,0], X_test[:,1], X_test[:,2], c=y_hat)
-
-#plt.hist(y_hat)
-plt.show()
-'''
-
