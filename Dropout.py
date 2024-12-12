@@ -50,19 +50,16 @@ class Dropout:
         """
         if self.mask is None:
             raise ValueError("Dropout mask is not initialized. Ensure dropoutForward is called during forward pass.")
-        #assert dout.shape == self.mask.shape, f"Gradient shape {dout.shape} does not match dropout mask shape {self.mask.shape}."
+        # Validate shape consistency
+        if dout.shape != self.mask.shape:
+            self.mask = np.random.rand(*dout.shape) > self.dropoutRate
         return dout * self.mask / (1 - self.dropoutRate)
 
     def setMode(self, mode):
         """
         Set the mode for the network: 'train' or 'test'
         Args:
-            mode (str): Either 'train' or 'test'.
+            mode (bool): Either 'train' or 'test'.
         """
-        if mode == 'train':
-            self.training = True
-        elif mode == 'test':
-            self.training = False
-        else:
-            raise ValueError("Mode can only be 'train' or 'test'")
+        self.training = mode
         self.mask = None  # reset mask when changing modes
