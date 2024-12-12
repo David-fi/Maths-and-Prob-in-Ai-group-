@@ -109,6 +109,7 @@ class NeuralNetwork:
             
             if i > 0:
                 dA_prev = np.dot(dZ, self.weights[i].T)
+            print("weight: ", len(self.weights))
         
         # Update weights and biases
         for i in range(self.num_layers):
@@ -165,4 +166,5 @@ class NeuralNetwork:
         Returns:
             np.array: Output predictions.
         """
+        self.dropout_layer.setMode(False)
         return self.forward(X, activation_function)
