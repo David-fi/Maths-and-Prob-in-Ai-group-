@@ -1,5 +1,5 @@
 import numpy as np
-    
+
 class Dropout:
     """
     Author: Abdelrahmane Bekhli
@@ -21,7 +21,6 @@ class Dropout:
         self.dropoutRate = dropoutRate
         self.mask = mask
         self.training = training
-            
 
     def dropoutForward(self, x):
         """
@@ -33,14 +32,14 @@ class Dropout:
         """
         if not isinstance(x, np.ndarray):
             raise TypeError(f"Input must be a numpy array, but got {type(x).__name__}.")
-
-        if self.training == True:
+        
+        if self.training:
             self.mask = np.random.rand(*x.shape) > self.dropoutRate
+            assert self.mask.shape == x.shape, f"Dropout mask shape {self.mask.shape} does not match input shape {x.shape}."
             return x * self.mask / (1 - self.dropoutRate)
         else:
             return x
 
-    @staticmethod
     def dropoutBackward(self, dout):
         """
         Backward pass for dropout.
@@ -49,20 +48,18 @@ class Dropout:
         Returns:
             numpy array: Gradient after applying dropout mask.
         """
+        if self.mask is None:
+            raise ValueError("Dropout mask is not initialized. Ensure dropoutForward is called during forward pass.")
+        # Validate shape consistency
+        if dout.shape != self.mask.shape:
+            self.mask = np.random.rand(*dout.shape) > self.dropoutRate
         return dout * self.mask / (1 - self.dropoutRate)
-    
-    
-    @staticmethod
-    def setMode(mode):
+
+    def setMode(self, mode):
         """
         Set the mode for the network: 'train' or 'test'
         Args:
-            mode (str): Either 'train' or 'test'.
+            mode (bool): Either 'train' or 'test'.
         """
-        if mode == 'train':
-            Dropout.training = True
-        elif mode == 'test':
-            Dropout.training = False
-        else:
-            raise ValueError("Mode can only be 'train' or 'test'")
-        Dropout.mask = None # reset mask when changing modes
+        self.training = mode
+        self.mask = None  # reset mask when changing modes
