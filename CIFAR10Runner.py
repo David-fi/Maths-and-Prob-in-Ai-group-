@@ -12,7 +12,7 @@ class CIFAR10Runner:
     """
     Author: Abdelrahmane Bekhli
     Date: 2024-10-12
-    Description: This class performs dropouts.
+    Description: This class imports CIFAR-10 and proccess its data.
     """
     def __init__(self, no_of_hidden_layers, no_of_hidden_units, learning_rate, dropout_rate, epochs):
         """
@@ -43,37 +43,18 @@ class CIFAR10Runner:
         """
         Load CIFAR-10 dataset and preprocess it
         """
-        print("Loading and preprocessing CIFAR-10 dataset...")
-        try:
-            # Load CIFAR-10 dataset
-            (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
-            
-            # Flatten images
-            X_train = X_train.reshape(X_train.shape[0], -1)
-            X_test = X_test.reshape(X_test.shape[0], -1)
-            
-            # Normalize pixel values to [0,1]
-            X_train = X_train.astype('float32') / 255.0
-            X_test = X_test.astype('float32') / 255.0
-            
-            # One-hot encode the labels
-            y_train = tf.keras.utils.to_categorical(y_train, num_classes=10)
-            y_test = tf.keras.utils.to_categorical(y_test, num_classes=10)
-            
-            # Store preprocessed data
-            self.X_train = X_train
-            self.X_test = X_test
-            self.y_train = y_train
-            self.y_test = y_test
-            
-            print(f"Training data shape: {self.X_train.shape}")
-            print(f"Training labels shape: {self.y_train.shape}")
-            print(f"Test data shape: {self.X_test.shape}")
-            print(f"Test labels shape: {self.y_test.shape}")
-        
-        except Exception as e:
-            print("Error loading dataset:")
-            print(traceback.format_exc())
+        (X_train, y_train), (X_test, y_test) = tf.keras.datasets.cifar10.load_data()
+
+        # Flatten images and normalize
+        X_train = X_train.reshape(X_train.shape[0], -1).astype('float32') / 255.0
+        X_test = X_test.reshape(X_test.shape[0], -1).astype('float32') / 255.0
+
+        # One-hot encode labels
+        y_train = tf.keras.utils.to_categorical(y_train, num_classes=10)
+        y_test = tf.keras.utils.to_categorical(y_test, num_classes=10)
+
+        self.X_train, self.X_test = X_train, X_test
+        self.y_train, self.y_test = y_train, y_test
     
     def create_neural_network(self):
         """
@@ -111,17 +92,18 @@ class CIFAR10Runner:
             if self.X_train is None:
                 raise ValueError("Data not loaded. Call load_and_preprocess_data() first.")
             
-            # Transpose data for the neural network
-            X_train_transposed = self.X_train.T
+            # Use data without transposing
+            X_train_processed = self.X_train
             
             # Train the network
             print(f"Starting training for {self.epochs} epochs...")
-            self.network.train(X_train_transposed, self.y_train.T, activation_function, self.epochs)
+            self.network.train(X_train_processed, self.y_train, activation_function, self.epochs)
             print("Training completed")
         
         except Exception as e:
             print("Error during training:")
             print(traceback.format_exc())
+
     
     def evaluate_network(self, activation_function):
         """
@@ -150,6 +132,7 @@ class CIFAR10Runner:
             # Calculate accuracy
             accuracy = np.mean(predictions == true_labels)
             print(f"Network Accuracy: {accuracy * 100:.2f}%")
+            #self.network.plot_loss()
             return accuracy
         
         except Exception as e:
@@ -183,9 +166,9 @@ class CIFAR10Runner:
 if __name__ == "__main__":
     runner = CIFAR10Runner(
         no_of_hidden_layers = 3,
-        no_of_hidden_units = [256, 128, 64],
+        no_of_hidden_units = [512, 128, 64],
         learning_rate = 0.01,
-        dropout_rate = 0.5,
+        dropout_rate = 0.2,
         epochs = 5  # Temporary reduced for quicker testing
     )
     
