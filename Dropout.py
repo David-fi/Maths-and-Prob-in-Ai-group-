@@ -6,7 +6,7 @@ class Dropout:
     Date: 2024-18-11
     Description: This class performs dropouts.
     """
-    def __init__(self, dropoutRate, mask=None, training=True, seed=None):
+    def __init__(self, dropoutRate, training=True, seed=None):
         """ 
         Initialize the Dropout layer. 
         Args: 
@@ -17,9 +17,9 @@ class Dropout:
             raise ValueError("Dropout rate must be between 0 and 1")
         if seed is not None:
             np.random.seed(seed)
-            
+
+        self.maskCache = []            
         self.dropoutRate = dropoutRate
-        self.mask = mask
         self.training = training
 
     def dropoutForward(self, x):
@@ -34,9 +34,10 @@ class Dropout:
             raise TypeError(f"Input must be a numpy array, but got {type(x).__name__}.")
         
         if self.training:
-            self.mask = np.random.rand(*x.shape) > self.dropoutRate
-            assert self.mask.shape == x.shape, f"Dropout mask shape {self.mask.shape} does not match input shape {x.shape}."
-            return x * self.mask / (1 - self.dropoutRate)
+            mask = np.random.rand(*x.shape) > self.dropoutRate
+            self.maskCache.append(mask)
+            assert mask.shape == x.shape, f"Dropout mask shape {mask.shape} does not match input shape {x.shape}."
+            return x * mask / (1 - self.dropoutRate)
         else:
             return x
 
@@ -48,12 +49,10 @@ class Dropout:
         Returns:
             numpy array: Gradient after applying dropout mask.
         """
-        if self.mask is None:
+        if len(self.maskCache) == 0:
             raise ValueError("Dropout mask is not initialized. Ensure dropoutForward is called during forward pass.")
-        # Validate shape consistency
-        if dout.shape != self.mask.shape:
-            self.mask = np.random.rand(*dout.shape) > self.dropoutRate
-        return dout * self.mask / (1 - self.dropoutRate)
+
+        return dout * self.maskCache.pop() / (1 - self.dropoutRate)
 
     def setMode(self, mode):
         """
@@ -62,4 +61,4 @@ class Dropout:
             mode (bool): Either 'train' or 'test'.
         """
         self.training = mode
-        self.mask = None  # reset mask when changing modes
+        self.maskCache.clear()  # reset mask when changing modes
