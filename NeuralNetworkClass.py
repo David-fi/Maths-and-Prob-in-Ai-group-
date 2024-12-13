@@ -25,59 +25,39 @@ class NeuralNetwork:
         self.activation_fn = activation_fn
         self.softmax_layer = softmax_layer()
         self.dropout_layer = dropout_layer(dropoutRate=dropout_rate, training=True)
-        
-        # Initialize weights and biases
+
         self.weights = []
         self.biases = []
         self.cache = {}
-        # TODO IMPLEMENT create_weight_matrices()
-        layer_sizes = [input_size] + hidden_units + [output_size]
-        for i in range(len(layer_sizes) - 1):
-            #self.weights.append(np.random.randn(layer_sizes[i], layer_sizes[i + 1]) * 0.01)
-            self.weights.append(np.random.randn(layer_sizes[i], layer_sizes[i + 1]) * np.sqrt(2 / layer_sizes[i]))
-            self.biases.append(np.zeros((1, layer_sizes[i + 1])))
-    
+
+        # Initialize weights and biases using create_weight_matrices
+        self.input_size = input_size
+        self.output_size = output_size
+        self.hidden_units = hidden_units
+
+        self.create_weight_matrices()
+
+    @staticmethod
     def truncated_normal(mean=0, sd=1, low=0, upp=10):
+        """
+        Create a truncated normal distribution.
+        """
         return truncnorm((low - mean) / sd, (upp - mean) / sd, loc=mean, scale=sd)
 
     def create_weight_matrices(self):
-        """ A method to initialize the weight matrices of the neural network"""
+        """
+        A method to initialize the weight matrices of the neural network.
+        """
+        layer_sizes = [self.input_size] + self.hidden_units + [self.output_size]
 
-        self.weights_in_hidden = np.zeros((self.no_of_in_units, self.no_of_hidden_units.size))
-        self.weights_hidden_hidden = [] 
-        self.weights_hidden_out = np.zeros((len(self.no_of_hidden_units), self.no_of_out_units))
-
-        
-        rad = 1 / np.sqrt(self.no_of_in_units)
-        X = self.truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
-        self.weights_in_hidden = X.rvs((self.no_of_hidden_units[0], 
-                                        self.no_of_in_units))
-        
-        for i in range(0, len(self.no_of_hidden_units) - 1):
-            
-            rad = 1 / np.sqrt(self.no_of_hidden_units[i])
+        for i in range(len(layer_sizes) - 1):
+            rad = 1 / np.sqrt(layer_sizes[i])
             X = self.truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
-            self.weights_hidden_hidden_element = X.rvs((self.no_of_hidden_units[i+1], 
-                                                        self.no_of_hidden_units[i]))
-            self.weights_hidden_hidden.append(self.weights_hidden_hidden_element)
-            
-            print("self.weights_hidden_hidden[i]:", self.weights_hidden_hidden[i])
-            print("Type of self.weights_hidden_hidden[i]:", type(self.weights_hidden_hidden[i]))
-            
-            
-            print("self.weights_hidden_hidden:", self.weights_hidden_hidden)
-            print("Type of self.weights_hidden_hidden:", type(self.weights_hidden_hidden))        
-        
-        rad = 1 / np.sqrt(self.no_of_hidden_units[len(self.no_of_hidden_units)-1])
-        X = self.truncated_normal(mean=0, sd=1, low=-rad, upp=rad)
-        self.weights_hidden_out = X.rvs((self.no_of_out_units, 
-                                        self.no_of_hidden_units[len(self.no_of_hidden_units)-1]))
-        
-            
-        print("AFTER LOOP self.weights_hidden_hidden:", self.weights_hidden_hidden)
-        print("AFTER LOOP Type of self.weights_hidden_hidden:", type(self.weights_hidden_hidden)) 
+            weights = X.rvs((layer_sizes[i], layer_sizes[i + 1]))
+            biases = np.zeros((1, layer_sizes[i + 1]))
 
-
+            self.weights.append(weights)
+            self.biases.append(biases)
 
     def forward(self, input_vector, activation_function):
         """
@@ -139,13 +119,13 @@ class NeuralNetwork:
             self.weights[i] -= self.learning_rate * grads[f"dW{i}"]
             self.biases[i] -= self.learning_rate * grads[f"db{i}"]
 
-
     def train(self, input_vector, target_vector, activation_function, epochs):
-
+        """
+        Train the Neural Network.
+        """
         self.loss_values = []  # Initialize list to store loss values
 
         for epoch in range(epochs):
-
             forward_output = self.forward(input_vector, activation_function)
             
             # Calculate loss
@@ -171,4 +151,3 @@ class NeuralNetwork:
         """
         self.dropout_layer.setMode(False)
         return self.forward(X, activation_function)
-    
