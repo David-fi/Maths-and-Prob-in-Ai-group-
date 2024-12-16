@@ -1,47 +1,28 @@
 import numpy as np
 
 class Dropout:
-    """
-    Author: Abdelrahmane Bekhli
-    Date: 2024-18-11
-    Description: This class performs dropouts.
-    """
-    def __init__(self, dropoutRate, training=True, seed=None):
-        """ 
-        Initialize the Dropout layer. 
-        Args: 
-            dropoutRate (float): The probability of dropping out a unit. 
-            seed (int, optional): Random seed for reproducibility. 
-        """
-        if not (0 <= dropoutRate < 1):
-            raise ValueError("Dropout rate must be between 0 and 1")
-        if seed is not None:
-            np.random.seed(seed)
+    def __init__(self, dropout_rate):
+        self.dropout_rate = dropout_rate
+        self.mask = None
 
-        self.maskCache = []            
-        self.dropoutRate = dropoutRate
-        self.training = training
-
-    def dropoutForward(self, x):
+    def forward(self, x, training):
         """
         Forward pass for dropout.
         Args:
             x (numpy array): The input to the dropout layer.
+            training (bool): Is the model being trained.
         Returns:
             numpy array: Output after applying dropout.
         """
         if not isinstance(x, np.ndarray):
             raise TypeError(f"Input must be a numpy array, but got {type(x).__name__}.")
-        
-        if self.training:
-            mask = np.random.rand(*x.shape) > self.dropoutRate
-            self.maskCache.append(mask)
-            assert mask.shape == x.shape, f"Dropout mask shape {mask.shape} does not match input shape {x.shape}."
-            return x * mask / (1 - self.dropoutRate)
-        else:
-            return x
+    
+        if training:
+            self.mask = np.random.rand(*x.shape) > self.dropout_rate
+            return x * self.mask / (1 - self.dropout_rate)
+        return x
 
-    def dropoutBackward(self, dout):
+    def backward(self, dout):
         """
         Backward pass for dropout.
         Args:
@@ -49,16 +30,4 @@ class Dropout:
         Returns:
             numpy array: Gradient after applying dropout mask.
         """
-        if len(self.maskCache) == 0:
-            raise ValueError("Dropout mask is not initialized. Ensure dropoutForward is called during forward pass.")
-
-        return dout * self.maskCache.pop() / (1 - self.dropoutRate)
-
-    def setMode(self, mode):
-        """
-        Set the mode for the network: 'train' or 'test'
-        Args:
-            mode (bool): Either 'train' or 'test'.
-        """
-        self.training = mode
-        self.maskCache.clear()  # reset mask when changing modes
+        return dout * self.mask / (1 - self.dropout_rate)
