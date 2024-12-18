@@ -38,7 +38,7 @@ class CIFAR10Runner:
         # Split the combined data into train, validate and test sets, in a randomized manner but with a fixed seed to ensure reproducibility of the results
         x_train_new, x_test, y_train_new, y_test = train_test_split(combined_train, combined_test, test_size=0.10, random_state=42, stratify=combined_test) 
       
-        x_train, x_val, y_train, y_val = train_test_split(x_train_new, y_train_new, test_size=0.18, random_state=42, stratify=y_train_new)
+        x_train, x_val, y_train, y_val = train_test_split(x_train_new, y_train_new, test_size=0.162, random_state=42, stratify=y_train_new)
         return x_train, y_train, x_val, y_val, x_test, y_test
     
     
