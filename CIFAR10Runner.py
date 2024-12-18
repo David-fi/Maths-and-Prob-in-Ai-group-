@@ -1,3 +1,7 @@
+import os
+# disables oneDNN optimizations
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 import tensorflow as tf
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -16,6 +20,7 @@ class CIFAR10Runner:
         self.epochs = epochs
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
+
 
     def load_data(self):
         """
@@ -65,7 +70,7 @@ if __name__ == "__main__":
         activationFunction = "relu",
         hidden_units = [1024, 512, 256],
         learning_rate = 0.001,
-        epochs = 5,
+        epochs = 10,
         batch_size = 64,
         dropout_rate = 0.2
     )
