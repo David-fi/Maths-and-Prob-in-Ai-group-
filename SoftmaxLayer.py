@@ -1,4 +1,5 @@
-import numpy as np
+import torch
+
 class SoftmaxLayer:
     
     def __init__(self):
@@ -11,18 +12,18 @@ class SoftmaxLayer:
         Perform the forward pass to calculate softmax probabilities.
     
         Parameters:
-            logits (np.array): Scores from the previous layer, shaped (batch_size, num_classes).
+            logits (torch.Tensor): Scores from the previous layer, shaped (batch_size, num_classes).
             
         Returns:
-            np.array: Probabilities for each class, same shape as input.
+            torch.Tensor: Probabilities for each class, same shape as input.
         """
         # Subtract the max to keep numbers stable
-        z_max = np.max(logits, axis=1, keepdims=True)
+        z_max = torch.max(logits, dim = 1, keepdim = True).values
         shifted_logits = logits - z_max
-        exp_shifted = np.exp(shifted_logits)
+        exp_shifted = torch.exp(shifted_logits)
         
         # Divide by sum of exponents to get probabilities
-        sum_exp = np.sum(exp_shifted, axis=1, keepdims=True)
+        sum_exp = torch.sum(exp_shifted, dim = 1, keepdims = True)
         output = exp_shifted / sum_exp
         return output
 
@@ -32,11 +33,11 @@ class SoftmaxLayer:
         Perform the backward pass to calculate gradient of the loss.
     
         Parameters:
-            output (np.array): Probabilities from softmaxForward, shaped (batch_size, num_classes).
-            true_labels (np.array): One-hot encoded true class labels, shaped (batch_size, num_classes).
+            output (torch.Tensor): Probabilities from softmaxForward, shaped (batch_size, num_classes).
+            true_labels (torch.Tensor): One-hot encoded true class labels, shaped (batch_size, num_classes).
             
         Returns:
-            np.array: Gradient of the loss with respect to logits, same shape as input.
+            torch.Tensor: Gradient of the loss with respect to logits, same shape as input.
         """
         # Get the number of samples to average the gradient
         num_samples = true_labels.shape[0]
