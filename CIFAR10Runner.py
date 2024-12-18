@@ -1,4 +1,6 @@
 import tensorflow as tf
+import numpy as np
+from sklearn.model_selection import train_test_split
 from NeuralNetwork import NeuralNetwork
 
 class CIFAR10Runner:
@@ -17,7 +19,7 @@ class CIFAR10Runner:
 
     def load_data(self):
         """
-        Load CIFAR-10 dataset and preprocess it
+        Load CIFAR-10 dataset and preprocess it.
         """
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
@@ -28,8 +30,18 @@ class CIFAR10Runner:
         # One-hot encode labels
         y_train = tf.keras.utils.to_categorical(y_train, self.output_size)
         y_test = tf.keras.utils.to_categorical(y_test, self.output_size)
-        return x_train, y_train, x_test, y_test
+        
+        # Concatenate the training and test datasets features and labels 
+        combined_train = np.concatenate([x_train, x_test], axis=0) 
+        combined_test = np.concatenate([y_train, y_test], axis=0)  
 
+        # Split the combined data into train, validate and test sets, in a randomized manner but with a fixed seed to ensure reproducibility of the results
+        x_train_new, x_test, y_train_new, y_test = train_test_split(combined_train, combined_test, test_size=0.10, random_state=42, stratify=combined_test) 
+      
+        x_train, x_val, y_train, y_val = train_test_split(x_train_new, y_train_new, test_size=0.18, random_state=42, stratify=y_train_new)
+        return x_train, y_train, x_val, y_val, x_test, y_test
+    
+    
     def run(self):
         """
         Train and run the Neural Network 
