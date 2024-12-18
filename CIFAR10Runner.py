@@ -40,20 +40,24 @@ class CIFAR10Runner:
       
         x_train, x_val, y_train, y_val = train_test_split(x_train_new, y_train_new, test_size=0.162, random_state=42, stratify=y_train_new)
         return x_train, y_train, x_val, y_val, x_test, y_test
-    
-    
+
     def run(self):
         """
-        Train and run the Neural Network 
+        Train and evaluate the Neural Network.
         """
         print("Loading CIFAR-10 data...")
-        x_train, y_train, x_test, y_test = self.load_data()
-        print("Initialising the Neural Network...")
+        x_train, y_train, x_val, y_val, x_test, y_test = self.load_data()
+
+        print("Initializing the Neural Network...")
         network = NeuralNetwork(self.activationFunction, self.input_size, self.output_size, self.hidden_units, self.learning_rate, self.dropout_rate)
+
         print("Training the Neural Network...")
-        network.train(x_train, y_train, self.epochs, self.batch_size)
-        print("Running the Neural Network...")
-        network.run(x_test, y_test)
+        network.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size)
+
+        #print("Final Evaluation on Test Set...")
+        #test_accuracy = network.run(x_test, y_test)
+        #print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+
         network.plot_loss()
 
 if __name__ == "__main__":
@@ -61,8 +65,8 @@ if __name__ == "__main__":
         activationFunction = "relu",
         hidden_units = [1024, 512, 256],
         learning_rate = 0.001,
-        epochs = 10,
+        epochs = 5,
         batch_size = 64,
-        dropout_rate = 0.5
+        dropout_rate = 0.2
     )
     runner.run()
