@@ -21,7 +21,6 @@ class CIFAR10Runner:
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
 
-
     def load_data(self):
         """
         Load CIFAR-10 dataset and preprocess it.
@@ -43,8 +42,10 @@ class CIFAR10Runner:
         # Split the combined data into train, validate and test sets, in a randomized manner but with a fixed seed to ensure reproducibility of the results
         x_train_new, x_test, y_train_new, y_test = train_test_split(combined_train, combined_test, test_size=0.10, random_state=42, stratify=combined_test) 
       
-        x_train, x_val, y_train, y_val = train_test_split(x_train_new, y_train_new, test_size=0.162, random_state=42, stratify=y_train_new)
+        x_train, x_val, y_train, y_val = train_test_split(x_train_new, y_train_new, test_size=0.18, random_state=42, stratify=y_train_new)
         return x_train, y_train, x_val, y_val, x_test, y_test
+    
+    
 
     def run(self):
         """
@@ -70,7 +71,7 @@ if __name__ == "__main__":
         activationFunction = "relu",
         hidden_units = [1024, 512, 256],
         learning_rate = 0.001,
-        epochs = 10,
+        epochs = 5,
         batch_size = 64,
         dropout_rate = 0.2
     )
