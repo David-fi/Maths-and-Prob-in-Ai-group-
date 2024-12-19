@@ -21,11 +21,7 @@ class CIFAR10Runner:
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
 
-
     def load_data(self):
-        """
-        Load CIFAR-10 dataset and preprocess it.
-        """
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
 
         # Flatten images and normalize
@@ -35,15 +31,14 @@ class CIFAR10Runner:
         # One-hot encode labels
         y_train = tf.keras.utils.to_categorical(y_train, self.output_size)
         y_test = tf.keras.utils.to_categorical(y_test, self.output_size)
-        
-        # Concatenate the training and test datasets features and labels 
-        combined_train = np.concatenate([x_train, x_test], axis=0) 
-        combined_test = np.concatenate([y_train, y_test], axis=0)  
 
-        # Split the combined data into train, validate and test sets, in a randomized manner but with a fixed seed to ensure reproducibility of the results
-        x_train_new, x_test, y_train_new, y_test = train_test_split(combined_train, combined_test, test_size=0.10, random_state=42, stratify=combined_test) 
-      
-        x_train, x_val, y_train, y_val = train_test_split(x_train_new, y_train_new, test_size=0.162, random_state=42, stratify=y_train_new)
+        # Split the original training set into train/validation subsets
+        x_train, x_val, y_train, y_val = train_test_split(
+            x_train, y_train, test_size = 0.18, random_state = 42, stratify = y_train
+        )
+        print(f"Training dataset size: {x_train.shape[0]}")
+        print(f"Validation dataset size: {x_val.shape[0]}")
+        print(f"Test dataset size: {x_test.shape[0]}")
         return x_train, y_train, x_val, y_val, x_test, y_test
 
     def run(self):
@@ -59,9 +54,9 @@ class CIFAR10Runner:
         print("Training the Neural Network...")
         network.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size)
 
-        #print("Final Evaluation on Test Set...")
-        #test_accuracy = network.run(x_test, y_test)
-        #print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+        print("Final Evaluation on Test Set...")
+        test_accuracy = network.run(x_test, y_test)
+        print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
         network.plot_loss()
 
@@ -71,7 +66,7 @@ if __name__ == "__main__":
         hidden_units = [1024, 512, 256],
         learning_rate = 0.001,
         epochs = 10,
-        batch_size = 64,
+        batch_size = 128,
         dropout_rate = 0.2
     )
     runner.run()

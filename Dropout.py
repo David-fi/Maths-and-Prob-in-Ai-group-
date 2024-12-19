@@ -1,4 +1,4 @@
-import torch
+import numpy as np
 
 class Dropout:
     def __init__(self, dropout_rate):
@@ -9,13 +9,16 @@ class Dropout:
         """
         Forward pass for dropout.
         Args:
-            x (torch.Tensor): The input to the dropout layer.
+            x (numpy array): The input to the dropout layer.
             training (bool): Is the model being trained.
         Returns:
-            torch.Tensor: Output after applying dropout.
-        """    
+            numpy array: Output after applying dropout.
+        """
+        if not isinstance(x, np.ndarray):
+            raise TypeError(f"Input must be a numpy array, but got {type(x).__name__}.")
+    
         if training:
-            self.mask = (torch.rand_like(x) > self.dropout_rate).float()
+            self.mask = np.random.rand(*x.shape) > self.dropout_rate
             return x * self.mask / (1 - self.dropout_rate)
         return x
 
@@ -23,8 +26,8 @@ class Dropout:
         """
         Backward pass for dropout.
         Args:
-            dout (torch.Tensor): The gradient from the next layer.
+            dout (numpy array): The gradient from the next layer.
         Returns:
-            torch.Tensor: Gradient after applying dropout mask.
+            numpy array: Gradient after applying dropout mask.
         """
         return dout * self.mask / (1 - self.dropout_rate)
