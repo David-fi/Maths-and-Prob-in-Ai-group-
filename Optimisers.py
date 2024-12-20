@@ -7,7 +7,7 @@ class Optimiser:
 class AdamOptimiser(Optimiser):
     def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
         """
-        Initialize the Adam optimizer with hyperparameters:
+        Initialize the Adam optimiser with hyperparameters:
         - learning_rate: Step size for parameter updates
         - beta1: Exponential decay rate for the first moment estimate
         - beta2: Exponential decay rate for the second moment estimate
@@ -23,7 +23,7 @@ class AdamOptimiser(Optimiser):
 
     def update_weights(self, weights, gradients):
         """
-        Update weights using the Adam optimization algorithm.
+        Update weights using the Adam optimisation algorithm.
 
         Args:
         - weights: Current weights of the layer
@@ -57,7 +57,7 @@ class AdamOptimiser(Optimiser):
 class SGDMomentumOptimiser(Optimiser):
     def __init__(self, learning_rate=0.01, momentum=0.9):
         """
-        Initialize the SGD optimizer with momentum:
+        Initialize the SGD optimiser with momentum:
         - learning_rate: Step size for parameter updates
         - momentum: Factor for exponential decay of the velocity term
         """
