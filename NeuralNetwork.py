@@ -6,30 +6,31 @@ from ActivationFunction import ActivationFunction
 from Dropout import Dropout
 from SoftmaxLayer import SoftmaxLayer
 from BatchNormalisation import BatchNormalisation
+from Optimisers import AdamOptimiser, SGDMomentumOptimiser
 
 class NeuralNetwork:
-    def __init__(self, activationFunction, input_size, output_size, hidden_units, learning_rate, dropout_rate=0.5):
+    def __init__(self, activationFunction, input_size, output_size, hidden_units, optimiser_type, learning_rate, dropout_rate):
+        print("Initializing the Neural Network...")
 
         # Parameters and hyperparameters initialisation 
         self.hidden_units = hidden_units
-        self.learning_rate = learning_rate
         self.dropout_rate = dropout_rate
 
         self.weights = []
         self.biases = []
-        self.m_weights = []
-        self.v_weights = []
-        self.m_biases = []
-        self.v_biases = []
         self.dropout_layers = []
         self.batch_norm_layers = []
         self.loss_values = []
-        self.beta1 = 0.9
-        self.beta2 = 0.999
-        self.epsilon = 1e-8
-        self.t = 0  # Adam timestep
 
         self.activationFunction = ActivationFunction(activationFunction)
+
+        # Initialize optimiser
+        if optimiser_type == "adam":
+            self.optimiser = AdamOptimiser(learning_rate)
+        elif optimiser_type == "sgd_momentum":
+            self.optimiser = SGDMomentumOptimiser(learning_rate)
+        else:
+            raise ValueError(f"Unsupported optimiser type: {optimiser_type}")
 
         # Initialize weights, biases, dropout, and batch normalization layers for each layer in the network
         layer_sizes = [input_size] + hidden_units + [output_size]
@@ -41,12 +42,6 @@ class NeuralNetwork:
             
             self.weights.append(weights)
             self.biases.append(biases)
-            
-            # Initialize Adam parameters (momentum and velocity) to zeros for weights and biases
-            self.m_weights.append(np.zeros_like(weights))
-            self.v_weights.append(np.zeros_like(weights))
-            self.m_biases.append(np.zeros_like(biases))
-            self.v_biases.append(np.zeros_like(biases))
 
             # Add dropout to hidden layers only
             if i < len(layer_sizes) - 2:  
@@ -124,52 +119,59 @@ class NeuralNetwork:
 
             dout = np.dot(dz, self.weights[i].T)
 
-        # Update weights and biases using Adam optimization
-        self.t += 1
+        # Update weights and biases using the optimiser
         for i in range(len(self.weights)):
-            self.m_weights[i] = self.beta1 * self.m_weights[i] + (1 - self.beta1) * grads[f"dW{i}"]
-            self.m_biases[i] = self.beta1 * self.m_biases[i] + (1 - self.beta1) * grads[f"db{i}"]
-
-            self.v_weights[i] = self.beta2 * self.v_weights[i] + (1 - self.beta2) * grads[f"dW{i}"] ** 2
-            self.v_biases[i] = self.beta2 * self.v_biases[i] + (1 - self.beta2) * grads[f"db{i}"] ** 2
-
-            m_hat_w = self.m_weights[i] / (1 - self.beta1 ** self.t)
-            v_hat_w = self.v_weights[i] / (1 - self.beta2 ** self.t)
-            m_hat_b = self.m_biases[i] / (1 - self.beta1 ** self.t)
-            v_hat_b = self.v_biases[i] / (1 - self.beta2 ** self.t)
-
-            # Vectorized update
-            self.weights[i] -= self.learning_rate * m_hat_w / (np.sqrt(v_hat_w) + self.epsilon)
-            self.biases[i] -= self.learning_rate * m_hat_b / (np.sqrt(v_hat_b) + self.epsilon)
-
+            self.weights[i] = self.optimiser.update_weights(self.weights[i], grads[f"dW{i}"])
+            self.biases[i] = self.optimiser.update_weights(self.biases[i], grads[f"db{i}"])
 
     def train(self, input_vector, target_vector, x_val, y_val, epochs, batch_size):
+        """
+        Train the neural network on the provided dataset.
+
+        Args:
+            input_vector (numpy.ndarray): Training data features.
+            target_vector (numpy.ndarray): Training data labels in one-hot encoded format.
+            x_val (numpy.ndarray): Validation data features.
+            y_val (numpy.ndarray): Validation data labels in one-hot encoded format.
+            epochs (int): Number of training epochs.
+            batch_size (int): Size of mini-batches for training.
+        """
+        # Log the size of the training dataset
         print(f"Training dataset size: {input_vector.shape[0]} samples")
 
+        # Initialize lists to store validation losses and accuracies
         self.val_losses = []
         self.val_accuracies = []
 
+        # Total number of samples in the training data
         num_samples = input_vector.shape[0]
         batch_indices = np.arange(0, num_samples, batch_size)
         print(f"Total batches per epoch: {len(batch_indices)}")
 
+        print("Training the Neural Network...")
         for epoch in range(epochs):
             epoch_start = time.time()
+            # Shuffle the dataset to ensure randomness in mini-batch selection
             perm = np.random.permutation(num_samples)
             input_vector, target_vector = input_vector[perm], target_vector[perm]
 
+            # Tracks the total loss for the current epoch
             epoch_loss = 0
+            # Tracks the total time spent on batches in the current epoch
             batch_time_total = 0
 
             for start_idx in batch_indices:
+                # Track the start time of processing this batch
                 batch_start = time.time()
                 end_idx = min(start_idx + batch_size, num_samples)
                 x_batch = input_vector[start_idx:end_idx]
                 y_batch = target_vector[start_idx:end_idx]
 
+                # Perform forward propagation to compute predictions for the batch
                 output = self.forward(x_batch, training=True)
                 self.backward(output, y_batch)
 
+                # Compute the batch loss using cross-entropy
                 batch_loss = -np.mean(np.sum(y_batch * np.log(output + 1e-8), axis=1))
                 epoch_loss += batch_loss * x_batch.shape[0]
 
@@ -193,6 +195,11 @@ class NeuralNetwork:
             # clear memory
             del x_batch, y_batch, output
             gc.collect()
+
+            # Early stopping condition: Stop if validation loss does not improve over the last 5 epochs
+            if epoch > 10 and (self.val_losses[-1] > min(self.val_losses[-5:])):
+                print(f"Early stopping at epoch {epoch + 1}")
+                break
 
 
     def run(self, input_data, true_labels, return_loss=False):
@@ -231,7 +238,7 @@ class NeuralNetwork:
         plt.show()
 
         plt.figure(figsize=(10, 6))
-        plt.plot(self.val_accuracies, label='Validation Accuracy', marker='x', color='green')
+        plt.plot(self.val_accuracies, label='Validation Accuracy', color='green')
         plt.title("Validation Accuracy Over Epochs")
         plt.xlabel("Epochs")
         plt.ylabel("Accuracy")
