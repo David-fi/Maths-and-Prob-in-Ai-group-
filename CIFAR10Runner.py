@@ -9,7 +9,7 @@ from NeuralNetwork import NeuralNetwork
 from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
 
 class CIFAR10Runner:
-    def __init__(self, activationFunction, hidden_units, epochs, batch_size, l2_reg, dropout_rate, initialOptimiser, secondaryOptimiser): #, optimiser_type):
+    def __init__(self, activationFunction, hidden_units, epochs, batch_size, l2_reg, dropout_rate, initialOptimiser, secondaryOptimiser):
         # CIFAR-10 specific parameters
         self.input_size = 32 * 32 * 3
         self.output_size = 10
@@ -63,16 +63,16 @@ class CIFAR10Runner:
 
 if __name__ == "__main__":
 
-    adamOptimiser = AdamOptimiser(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8)
-    sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.001, momentum=0.9)
-    sgdOptimiser = SGDOptimiser(learning_rate=0.001)
+    adamOptimiser = AdamOptimiser(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01)
+    sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.001, momentum=0.9, decay=0.01)
+    sgdOptimiser = SGDOptimiser(learning_rate=0.001, decay=0.01)
 
     runner = CIFAR10Runner(
         activationFunction = "relu",
         hidden_units = [1024, 512, 256],
         epochs = 30,
         batch_size = 128,
-        l2_reg = 0.0001,
+        l2_reg = 0.0,
         dropout_rate = 0.2, # 0.4,
         initialOptimiser= adamOptimiser,
         secondaryOptimiser = sgdMomentumOptimiser

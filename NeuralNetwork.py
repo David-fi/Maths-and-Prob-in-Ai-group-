@@ -148,6 +148,9 @@ class NeuralNetwork:
         print("Training the Neural Network...")
         print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
         for epoch in range(epochs):
+            # Update learning rate at the start of each epoch
+            self.optimiser.update_learning_rate(epoch)
+
             epoch_start = time.time()
             # Shuffle the dataset to ensure randomness in mini-batch selection
             perm = np.random.permutation(num_samples)
@@ -172,7 +175,7 @@ class NeuralNetwork:
                 # Compute the batch loss using cross-entropy
                 batch_loss = -np.mean(np.sum(y_batch * np.log(output + 1e-8), axis=1))
 
-                # apply L2 regularization
+                # Apply L2 regularization
                 l2_penalty = (self.l2_lambda / 2) * sum(np.sum(w**2) for w in self.weights)
                 batch_loss += l2_penalty
                 epoch_loss += batch_loss * x_batch.shape[0]
@@ -197,11 +200,11 @@ class NeuralNetwork:
 
             epoch_time = time.time() - epoch_start
             print(f"Epoch {epoch + 1}/{epochs}, "
-                f"Epoch Loss: {epoch_loss:.4f}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, "
-                f"Train Accuracy: {train_accuracy * 100:.2f}%, Val Accuracy: {val_accuracy * 100:.2f}%, "
-                f"Batch Time: {batch_time_total:.2f}s, Val Time: {val_time:.2f}s, Total Time: {epoch_time:.2f}s")
+                f"Loss: | Epoch {epoch_loss:.4f},  Train {train_loss:.4f}, val {val_loss:.4f} | "
+                f"Accuracy: | train {train_accuracy * 100:.2f}% , Val {val_accuracy * 100:.2f}% | "
+                f"Time: | batch {batch_time_total:.2f}s, Val {val_time:.2f}s, Total {epoch_time:.2f}s |")
             
-            # clear memory
+            # Clear memory
             del x_batch, y_batch, output
             gc.collect()
             
