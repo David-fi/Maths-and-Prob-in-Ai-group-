@@ -6,7 +6,7 @@ import tensorflow as tf
 import numpy as np
 from sklearn.model_selection import train_test_split
 from NeuralNetwork import NeuralNetwork
-from Optimisers import AdamOptimiser, SGDMomentumOptimiser
+from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
 
 class CIFAR10Runner:
     def __init__(self, activationFunction, hidden_units, learning_rate, epochs, batch_size, dropout_rate, initialOptimiser, secondaryOptimiser): #, optimiser_type):
@@ -55,9 +55,9 @@ class CIFAR10Runner:
         
         network.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size)
 
-        #print("Final Evaluation on Test Set...")
-        #test_accuracy = network.run(x_test, y_test)
-        #print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+        print("Final Evaluation on Test Set...")
+        test_accuracy = network.run(x_test, y_test)
+        print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
         network.plot_loss()
 
@@ -65,6 +65,7 @@ if __name__ == "__main__":
 
     adamOptimiser = AdamOptimiser(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8)
     sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.001, momentum=0.9)
+    sgdOptimiser = SGDOptimiser(learning_rate=0.001)
 
     runner = CIFAR10Runner(
         activationFunction = "relu",

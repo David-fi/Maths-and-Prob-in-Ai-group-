@@ -55,7 +55,7 @@ class AdamOptimiser(Optimiser):
         return weights
 
 class SGDMomentumOptimiser(Optimiser):
-    def __init__(self, learning_rate=0.01, momentum=0.9):
+    def __init__(self, learning_rate=0.001, momentum=0.9):
         """
         Initialize the SGD optimiser with momentum:
         - learning_rate: Step size for parameter updates
@@ -88,4 +88,26 @@ class SGDMomentumOptimiser(Optimiser):
 
         # Update weights using the velocity term
         weights += self.velocity[id(weights)]
+        return weights
+
+class SGDOptimiser(Optimiser):
+    def __init__(self, learning_rate=0.001):
+        """
+        Initialize the SGD optimiser:
+        - learning_rate: Step size for parameter updates
+        """
+        self.learning_rate = learning_rate
+
+    def update_weights(self, weights, gradients):
+        """
+        Update weights using the basic Stochastic Gradient Descent algorithm.
+
+        Args:
+        - weights: Current weights of the layer
+        - gradients: Gradients of the loss with respect to weights
+
+        Returns:
+        - Updated weights
+        """
+        weights -= self.learning_rate * gradients
         return weights
