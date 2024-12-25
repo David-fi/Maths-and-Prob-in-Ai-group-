@@ -6,10 +6,9 @@ from ActivationFunction import ActivationFunction
 from Dropout import Dropout
 from SoftmaxLayer import SoftmaxLayer
 from BatchNormalisation import BatchNormalisation
-from Optimisers import AdamOptimiser, SGDMomentumOptimiser
 
 class NeuralNetwork:
-    def __init__(self, activationFunction, input_size, output_size, hidden_units, learning_rate, dropout_rate, initialOptimser, secondaryOptimser): #  optimiser_type, was removed 
+    def __init__(self, activationFunction, input_size, output_size, hidden_units, dropout_rate, initialOptimser, secondaryOptimser, l2_lambda=0.0): #  optimiser_type, was removed 
         print("Initializing the Neural Network...")
 
         # Parameters and hyperparameters initialisation 
@@ -25,6 +24,9 @@ class NeuralNetwork:
         self.activationFunction = ActivationFunction(activationFunction)
         self.optimiser = initialOptimser
         self.secondaryOptimser = secondaryOptimser
+
+        # L2 regularization parameter
+        self.l2_lambda = l2_lambda
 
         layer_sizes = [input_size] + hidden_units + [output_size]
         for i in range(len(layer_sizes) - 1):
@@ -107,7 +109,7 @@ class NeuralNetwork:
 
             dz = self.activationFunction.backward(dout, self.cache[f"Z{i + 1}"])
 
-            grads[f"dW{i}"] = np.dot(self.cache[f"A{i}"].T, dz)
+            grads[f"dW{i}"] = np.dot(self.cache[f"A{i}"].T, dz) + self.l2_lambda * self.weights[i]
             grads[f"db{i}"] = np.sum(dz, axis=0, keepdims=True)
 
             dout = np.dot(dz, self.weights[i].T)
@@ -169,7 +171,12 @@ class NeuralNetwork:
 
                 # Compute the batch loss using cross-entropy
                 batch_loss = -np.mean(np.sum(y_batch * np.log(output + 1e-8), axis=1))
+
+                # apply L2 regularization
+                l2_penalty = (self.l2_lambda / 2) * sum(np.sum(w**2) for w in self.weights)
+                batch_loss += l2_penalty
                 epoch_loss += batch_loss * x_batch.shape[0]
+
 
                 batch_time_total += time.time() - batch_start
 
