@@ -6,9 +6,10 @@ import tensorflow as tf
 import numpy as np
 from sklearn.model_selection import train_test_split
 from NeuralNetwork import NeuralNetwork
+from Optimisers import AdamOptimiser, SGDMomentumOptimiser
 
 class CIFAR10Runner:
-    def __init__(self, activationFunction, hidden_units, learning_rate, epochs, batch_size, dropout_rate): #, optimiser_type):
+    def __init__(self, activationFunction, hidden_units, learning_rate, epochs, batch_size, dropout_rate, initialOptimiser, secondaryOptimiser): #, optimiser_type):
         # CIFAR-10 specific parameters
         self.input_size = 32 * 32 * 3
         self.output_size = 10
@@ -20,7 +21,8 @@ class CIFAR10Runner:
         self.epochs = epochs
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
-      #  self.optimiser_type = optimiser_type
+        self.initialOptimiser = initialOptimiser
+        self.secondaryOptimiser = secondaryOptimiser
 
     def load_data(self):
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
@@ -49,7 +51,7 @@ class CIFAR10Runner:
         print("Loading CIFAR-10 data...")
         x_train, y_train, x_val, y_val, x_test, y_test = self.load_data()
 
-        network = NeuralNetwork(self.activationFunction, self.input_size, self.output_size, self.hidden_units, self.learning_rate, self.dropout_rate) # self.optimiser_type, was removed
+        network = NeuralNetwork(self.activationFunction, self.input_size, self.output_size, self.hidden_units, self.learning_rate, self.dropout_rate, self.initialOptimiser, self.secondaryOptimiser)
         
         network.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size)
 
@@ -60,6 +62,10 @@ class CIFAR10Runner:
         network.plot_loss()
 
 if __name__ == "__main__":
+
+    adamOptimiser = AdamOptimiser(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8)
+    sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.001, momentum=0.9)
+
     runner = CIFAR10Runner(
         activationFunction = "relu",
         hidden_units = [1024, 512, 256],
@@ -67,6 +73,7 @@ if __name__ == "__main__":
         epochs = 30,
         batch_size = 128,
         dropout_rate = 0.2, # 0.4,
-       # optimiser_type = "sgd_momentum"
+        initialOptimiser= adamOptimiser,
+        secondaryOptimiser = sgdMomentumOptimiser
     ) 
     runner.run()

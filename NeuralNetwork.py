@@ -9,7 +9,7 @@ from BatchNormalisation import BatchNormalisation
 from Optimisers import AdamOptimiser, SGDMomentumOptimiser
 
 class NeuralNetwork:
-    def __init__(self, activationFunction, input_size, output_size, hidden_units, learning_rate, dropout_rate): #  optimiser_type, was removed 
+    def __init__(self, activationFunction, input_size, output_size, hidden_units, learning_rate, dropout_rate, initialOptimser, secondaryOptimser): #  optimiser_type, was removed 
         print("Initializing the Neural Network...")
 
         # Parameters and hyperparameters initialisation 
@@ -23,16 +23,9 @@ class NeuralNetwork:
         self.loss_values = []
 
         self.activationFunction = ActivationFunction(activationFunction)
+        self.optimiser = initialOptimser
+        self.secondaryOptimser = secondaryOptimser
 
-        # Initialize optimiser
-      #  if optimiser_type == "adam":
-        self.optimiser = AdamOptimiser(learning_rate)
-   #     elif optimiser_type == "sgd_momentum":
-           # self.optimiser = SGDMomentumOptimiser(learning_rate)
-      #  else:
-         #   raise ValueError(f"Unsupported optimiser type: {optimiser_type}")
-#
-        # Initialize weights, biases, dropout, and batch normalization layers for each layer in the network
         layer_sizes = [input_size] + hidden_units + [output_size]
         for i in range(len(layer_sizes) - 1):
 
@@ -151,6 +144,7 @@ class NeuralNetwork:
         print(f"Total batches per epoch: {len(batch_indices)}")
 
         print("Training the Neural Network...")
+        print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
         for epoch in range(epochs):
             epoch_start = time.time()
             # Shuffle the dataset to ensure randomness in mini-batch selection
@@ -195,24 +189,23 @@ class NeuralNetwork:
             
 
             epoch_time = time.time() - epoch_start
-            print(f"\nEpoch {epoch + 1}/{epochs}, Epoch Loss: {epoch_loss:.4f}, "
-                f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%, "
-                f"Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy * 100:.2f}%, "
-                f"Batch Time: {batch_time_total:.2f}s, Val Time: {val_time:.2f}s, Total Time: {epoch_time:.2f}s\n")
+            print(f"Epoch {epoch + 1}/{epochs}, "
+                f"Epoch Loss: {epoch_loss:.4f}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}, "
+                f"Train Accuracy: {train_accuracy * 100:.2f}%, Val Accuracy: {val_accuracy * 100:.2f}%, "
+                f"Batch Time: {batch_time_total:.2f}s, Val Time: {val_time:.2f}s, Total Time: {epoch_time:.2f}s")
             
             # clear memory
             del x_batch, y_batch, output
             gc.collect()
             
-            print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
             # Early stopping condition: Stop if validation loss does not improve over the last 5 epochs
             if epoch > 10 and (self.val_losses[-1] > min(self.val_losses[-5:])):
-             #   print(f"Early stopping of Adam optimizer at epoch {epoch + 1}. Now begins optimization with SGD with momentum")
-                self.optimiser = SGDMomentumOptimiser()
-                
-            if epoch > 25 and (self.val_losses[-1] > min(self.val_losses[-5:])):
-                print(f"Early stopping of SGD with momentum optimizer at epoch {epoch + 1}") #... Now begins optimization with RMSProp ONCE IMPLEMENTED, so far only Adam and SGDMomentumOptimiser
-                break
+                if(self.optimiser.__class__.__name__ != self.secondaryOptimser.__class__.__name__):
+                    self.optimiser = self.secondaryOptimser
+                    print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
+                else:
+                    print(f"Early stopping at epoch {epoch}")
+                    break
 
 
 
