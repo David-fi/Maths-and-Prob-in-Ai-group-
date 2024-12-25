@@ -9,13 +9,13 @@ from NeuralNetwork import NeuralNetwork
 from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
 
 class CIFAR10Runner:
-    def __init__(self, model, epochs, batch_size, patience, tolrance):
+    def __init__(self, model, epochs, batch_size, patience, tolerance):
         # Neural Network parameters
         self.model = model
         self.epochs = epochs
         self.batch_size = batch_size
         self.patience = patience
-        self.tolrance = tolrance
+        self.tolerance = tolerance
 
     def load_data(self):
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
@@ -44,7 +44,7 @@ class CIFAR10Runner:
         print("Loading CIFAR-10 data...")
         x_train, y_train, x_val, y_val, x_test, y_test = self.load_data()
         
-        self.model.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size, self.patience, self.tolrance)
+        self.model.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size, self.patience, self.tolerance)
 
         print("Final Evaluation on Test Set...")
         test_accuracy = self.model.run(x_test, y_test)
@@ -73,6 +73,6 @@ if __name__ == "__main__":
         epochs = 100,
         batch_size = 128,
         patience = 5,
-        tolrance = 0.01
+        tolerance = 0.01
     ) 
     runner.run()
