@@ -6,10 +6,9 @@ from ActivationFunction import ActivationFunction
 from Dropout import Dropout
 from SoftmaxLayer import SoftmaxLayer
 from BatchNormalisation import BatchNormalisation
-from Optimisers import AdamOptimiser, SGDMomentumOptimiser
 
 class NeuralNetwork:
-    def __init__(self, activationFunction, input_size, output_size, hidden_units, optimiser_type, learning_rate, dropout_rate):
+    def __init__(self, activationFunction, input_size, output_size, hidden_units, dropout_rate, initialOptimser, secondaryOptimser, l2_lambda=0.0): #  optimiser_type, was removed 
         print("Initializing the Neural Network...")
 
         # Parameters and hyperparameters initialisation 
@@ -23,16 +22,12 @@ class NeuralNetwork:
         self.loss_values = []
 
         self.activationFunction = ActivationFunction(activationFunction)
+        self.optimiser = initialOptimser
+        self.secondaryOptimser = secondaryOptimser
 
-        # Initialize optimiser
-        if optimiser_type == "adam":
-            self.optimiser = AdamOptimiser(learning_rate)
-        elif optimiser_type == "sgd_momentum":
-            self.optimiser = SGDMomentumOptimiser(learning_rate)
-        else:
-            raise ValueError(f"Unsupported optimiser type: {optimiser_type}")
+        # L2 regularization parameter
+        self.l2_lambda = l2_lambda
 
-        # Initialize weights, biases, dropout, and batch normalization layers for each layer in the network
         layer_sizes = [input_size] + hidden_units + [output_size]
         for i in range(len(layer_sizes) - 1):
 
@@ -114,15 +109,15 @@ class NeuralNetwork:
 
             dz = self.activationFunction.backward(dout, self.cache[f"Z{i + 1}"])
 
-            grads[f"dW{i}"] = np.dot(self.cache[f"A{i}"].T, dz)
+            grads[f"dW{i}"] = np.dot(self.cache[f"A{i}"].T, dz) + self.l2_lambda * self.weights[i]
             grads[f"db{i}"] = np.sum(dz, axis=0, keepdims=True)
 
             dout = np.dot(dz, self.weights[i].T)
-
+            
         # Update weights and biases using the optimiser
         for i in range(len(self.weights)):
             self.weights[i] = self.optimiser.update_weights(self.weights[i], grads[f"dW{i}"])
-            self.biases[i] = self.optimiser.update_weights(self.biases[i], grads[f"db{i}"])
+            self.biases[i] = self.optimiser.update_weights(self.biases[i], grads[f"db{i}"]) 
 
     def train(self, input_vector, target_vector, x_val, y_val, epochs, batch_size):
         """
@@ -142,6 +137,8 @@ class NeuralNetwork:
         # Initialize lists to store validation losses and accuracies
         self.val_losses = []
         self.val_accuracies = []
+        self.train_losses = []
+        self.train_accuracies = [] 
 
         # Total number of samples in the training data
         num_samples = input_vector.shape[0]
@@ -149,7 +146,11 @@ class NeuralNetwork:
         print(f"Total batches per epoch: {len(batch_indices)}")
 
         print("Training the Neural Network...")
+        print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
         for epoch in range(epochs):
+            # Update learning rate at the start of each epoch
+            self.optimiser.update_learning_rate(epoch)
+
             epoch_start = time.time()
             # Shuffle the dataset to ensure randomness in mini-batch selection
             perm = np.random.permutation(num_samples)
@@ -173,7 +174,12 @@ class NeuralNetwork:
 
                 # Compute the batch loss using cross-entropy
                 batch_loss = -np.mean(np.sum(y_batch * np.log(output + 1e-8), axis=1))
+
+                # Apply L2 regularization
+                l2_penalty = (self.l2_lambda / 2) * sum(np.sum(w**2) for w in self.weights)
+                batch_loss += l2_penalty
                 epoch_loss += batch_loss * x_batch.shape[0]
+
 
                 batch_time_total += time.time() - batch_start
 
@@ -186,20 +192,31 @@ class NeuralNetwork:
             self.val_losses.append(val_loss)
             self.val_accuracies.append(val_accuracy)
             val_time = time.time() - val_start
+            
+            train_accuracy, train_loss = self.run(input_vector, target_vector, return_loss=True)
+            self.train_losses.append(train_loss)
+            self.train_accuracies.append(train_accuracy)
+            
 
             epoch_time = time.time() - epoch_start
-            print(f"Epoch {epoch + 1}/{epochs}, Loss: {epoch_loss:.4f}, "
-                f"Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy * 100:.2f}%, "
-                f"Batch Time: {batch_time_total:.2f}s, Val Time: {val_time:.2f}s, Total Time: {epoch_time:.2f}s")
+            print(f"Epoch {epoch + 1}/{epochs}, "
+                f"Loss: | Epoch {epoch_loss:.4f},  Train {train_loss:.4f}, val {val_loss:.4f} | "
+                f"Accuracy: | train {train_accuracy * 100:.2f}% , Val {val_accuracy * 100:.2f}% | "
+                f"Time: | batch {batch_time_total:.2f}s, Val {val_time:.2f}s, Total {epoch_time:.2f}s |")
             
-            # clear memory
+            # Clear memory
             del x_batch, y_batch, output
             gc.collect()
-
+            
             # Early stopping condition: Stop if validation loss does not improve over the last 5 epochs
             if epoch > 10 and (self.val_losses[-1] > min(self.val_losses[-5:])):
-                print(f"Early stopping at epoch {epoch + 1}")
-                break
+                if(self.optimiser.__class__.__name__ != self.secondaryOptimser.__class__.__name__):
+                    self.optimiser = self.secondaryOptimser
+                    print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
+                else:
+                    print(f"Early stopping at epoch {epoch}")
+                    break
+
 
 
     def run(self, input_data, true_labels, return_loss=False):
@@ -212,17 +229,17 @@ class NeuralNetwork:
             return_loss: Boolean, whether to return the loss.
         
         Returns:
-            accuracy: The accuracy of the network on the given dataset as a float value.
-            loss (optional): The loss on the given dataset.
+            accuracy: The accuracy (validation or training accuracy, depending on the values passed as inputs to the function) of the network on the given dataset as a float value. 
+            loss (optional): The loss (validation or training loss, depending on the values passed as inputs to the function) on the given dataset.
         """
         output = self.forward(input_data, training=False)
-        predictions = np.argmax(output, axis=1)
-        labels = np.argmax(true_labels, axis=1)
-        
-        accuracy = np.mean(predictions == labels)
+        predictions = np.argmax(output, axis=1) # whether those made on the training set or the validation set, as input_data parameter could very well be x_val (validation set) or input_vector (training set), depending on whether training accuracy or validation accuracy is being calculated and therefore, depending on the arguments passed when calling function run within method train (x_val or input_vector) 
+        labels = np.argmax(true_labels, axis=1) # whether labels of the training set or the validation set, as true_labels parameter could very well be y_val (validation set) or target_vector (training set), depending on whether training accuracy or validation accuracy is being calculated and therefore, depending on the arguments passed when calling function run within method train (y_val or target_vector) 
+
+        accuracy = np.mean(predictions == labels) # whether training or validation accuracy, it will work for both. This is determined by the arguments passed when calling function run within method train, once for calculating training accuracy and once for calculating validation accuracy. 
         
         if return_loss:
-            loss = -np.mean(np.sum(true_labels * np.log(output + 1e-8), axis=1))
+            loss = -np.mean(np.sum(true_labels * np.log(output + 1e-8), axis=1)) # this can calculate both training loss and validation loss, depending on the arguments passed when calling function run within method train. If y_val is passed as an argument, validation loss is calculated. If target_vector is passed as an argument, training loss is calculated. In our implementation of method train.
             return accuracy, loss
         return accuracy
 
@@ -238,10 +255,12 @@ class NeuralNetwork:
         plt.show()
 
         plt.figure(figsize=(10, 6))
-        plt.plot(self.val_accuracies, label='Validation Accuracy', color='green')
-        plt.title("Validation Accuracy Over Epochs")
+        plt.plot(self.train_accuracies, label='Training Accuracy')
+        plt.plot(self.val_accuracies, label='Validation Accuracy', color='orange')
+        plt.title("Training and Validation Accuracy Over Epochs")
         plt.xlabel("Epochs")
         plt.ylabel("Accuracy")
         plt.legend()
         plt.grid()
         plt.show()
+        
