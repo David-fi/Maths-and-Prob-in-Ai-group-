@@ -55,9 +55,9 @@ class CIFAR10Runner:
         
         network.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size)
 
-        print("Final Evaluation on Test Set...")
-        test_accuracy = network.run(x_test, y_test)
-        print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+       # print("Final Evaluation on Test Set...")
+       # test_accuracy = network.run(x_test, y_test)
+       # print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
 
         network.plot_loss()
 
