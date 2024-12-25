@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from NeuralNetwork import NeuralNetwork
 
 class CIFAR10Runner:
-    def __init__(self, activationFunction, hidden_units, learning_rate, epochs, batch_size, dropout_rate, optimiser_type):
+    def __init__(self, activationFunction, hidden_units, learning_rate, epochs, batch_size, dropout_rate): #, optimiser_type):
         # CIFAR-10 specific parameters
         self.input_size = 32 * 32 * 3
         self.output_size = 10
@@ -20,7 +20,7 @@ class CIFAR10Runner:
         self.epochs = epochs
         self.batch_size = batch_size
         self.dropout_rate = dropout_rate
-        self.optimiser_type = optimiser_type
+      #  self.optimiser_type = optimiser_type
 
     def load_data(self):
         (x_train, y_train), (x_test, y_test) = tf.keras.datasets.cifar10.load_data()
@@ -49,7 +49,7 @@ class CIFAR10Runner:
         print("Loading CIFAR-10 data...")
         x_train, y_train, x_val, y_val, x_test, y_test = self.load_data()
 
-        network = NeuralNetwork(self.activationFunction, self.input_size, self.output_size, self.hidden_units, self.optimiser_type, self.learning_rate, self.dropout_rate)
+        network = NeuralNetwork(self.activationFunction, self.input_size, self.output_size, self.hidden_units, self.learning_rate, self.dropout_rate) # self.optimiser_type, was removed
         
         network.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size)
 
@@ -63,10 +63,10 @@ if __name__ == "__main__":
     runner = CIFAR10Runner(
         activationFunction = "relu",
         hidden_units = [1024, 512, 256],
-        learning_rate = 0.001,
-        epochs = 10,
+        learning_rate = 0.001, # 0.01, # 0.0005,
+        epochs = 30,
         batch_size = 128,
-        dropout_rate = 0.2,
-        optimiser_type = "sgd_momentum"
-    )
+        dropout_rate = 0.2, # 0.4,
+       # optimiser_type = "sgd_momentum"
+    ) 
     runner.run()
