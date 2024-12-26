@@ -8,12 +8,14 @@ from SoftmaxLayer import SoftmaxLayer
 from BatchNormalisation import BatchNormalisation
 
 class NeuralNetwork:
-    def __init__(self, activationFunction, input_size, output_size, hidden_units, dropout_rate, initialOptimser, secondaryOptimser, l2_lambda=0.0): #  optimiser_type, was removed 
+    def __init__(self, activationFunction, input_size, output_size, hidden_units, dropout_rate, optimisers, l2_lambda=0.0): #  optimiser_type, was removed 
         print("Initializing the Neural Network...")
 
         # Parameters and hyperparameters initialisation 
         self.hidden_units = hidden_units
         self.dropout_rate = dropout_rate
+
+        self.output_size = output_size
 
         self.weights = []
         self.biases = []
@@ -22,13 +24,13 @@ class NeuralNetwork:
         self.loss_values = []
 
         self.activationFunction = ActivationFunction(activationFunction)
-        self.optimiser = initialOptimser
-        self.secondaryOptimser = secondaryOptimser
+        self.optimiser = optimisers[0]
+        self.optimiserList = optimisers
 
         # L2 regularization parameter
         self.l2_lambda = l2_lambda
 
-        layer_sizes = [input_size] + hidden_units + [output_size]
+        layer_sizes = [input_size] + hidden_units + [self.output_size]
         for i in range(len(layer_sizes) - 1):
 
             # He initialization for weights
@@ -119,7 +121,7 @@ class NeuralNetwork:
             self.weights[i] = self.optimiser.update_weights(self.weights[i], grads[f"dW{i}"])
             self.biases[i] = self.optimiser.update_weights(self.biases[i], grads[f"db{i}"]) 
 
-    def train(self, input_vector, target_vector, x_val, y_val, epochs, batch_size):
+    def train(self, input_vector, target_vector, x_val, y_val, epochs, batch_size, patience, tolerance):
         """
         Train the neural network on the provided dataset.
 
@@ -144,6 +146,11 @@ class NeuralNetwork:
         num_samples = input_vector.shape[0]
         batch_indices = np.arange(0, num_samples, batch_size)
         print(f"Total batches per epoch: {len(batch_indices)}")
+
+        no_improvement_epochs = 0 
+        optimiser_index = 0
+        recent_val_losses = [] 
+        max_epochs_to_track = 5
 
         print("Training the Neural Network...")
         print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
@@ -200,22 +207,34 @@ class NeuralNetwork:
 
             epoch_time = time.time() - epoch_start
             print(f"Epoch {epoch + 1}/{epochs}, "
-                f"Loss: | Epoch {epoch_loss:.4f},  Train {train_loss:.4f}, val {val_loss:.4f} | "
+                f"Loss: | Epoch {epoch_loss:.4f}, Train {train_loss:.4f}, Val {val_loss:.4f} | "
                 f"Accuracy: | train {train_accuracy * 100:.2f}% , Val {val_accuracy * 100:.2f}% | "
                 f"Time: | batch {batch_time_total:.2f}s, Val {val_time:.2f}s, Total {epoch_time:.2f}s |")
-            
+        
+            recent_val_losses.append(val_loss) 
+            if len(recent_val_losses) > max_epochs_to_track:
+                recent_val_losses.pop(0)
+
+            # Compare the current validation loss with the best in the last 5 epochs
+            if epoch > max_epochs_to_track:
+                if val_loss <= min(recent_val_losses) - tolerance:
+                    no_improvement_epochs = 0 
+                else:
+                    no_improvement_epochs += 1 
+
+                # Handle optimizer switching or early stopping
+                if no_improvement_epochs >= patience:
+                    if optimiser_index < len(self.optimiserList) - 1:
+                        optimiser_index += 1
+                        self.optimiser = self.optimiserList[optimiser_index] 
+                        no_improvement_epochs = 0 
+                        print(f"Switching to optimizer: {self.optimiser.__class__.__name__}")
+                    else:
+                        print(f"All optimizers used. Early stopping at epoch {epoch + 1}.")
+                        break
             # Clear memory
             del x_batch, y_batch, output
             gc.collect()
-            
-            # Early stopping condition: Stop if validation loss does not improve over the last 5 epochs
-            if epoch > 10 and (self.val_losses[-1] > min(self.val_losses[-5:])):
-                if(self.optimiser.__class__.__name__ != self.secondaryOptimser.__class__.__name__):
-                    self.optimiser = self.secondaryOptimser
-                    print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
-                else:
-                    print(f"Early stopping at epoch {epoch}")
-                    break
 
 
 
