@@ -1,7 +1,6 @@
 import os
 # disables oneDNN optimisations
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-
 import random 
 from random import randint
 import tensorflow as tf
@@ -78,4 +77,4 @@ if __name__ == "__main__":
         
     runner.run()
 
-    
+ 
