@@ -46,9 +46,9 @@ class CIFAR10Runner:
         
         self.model.train(x_train, y_train, x_val, y_val, self.epochs, self.batch_size)
 
-        print("Final Evaluation on Test Set...")
-        test_accuracy = self.model.run(x_test, y_test)
-        print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+        # print("Final Evaluation on Test Set...")
+        # test_accuracy = self.model.run(x_test, y_test)
+        # print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
              
         self.model.plot_loss()
    
@@ -77,3 +77,5 @@ if __name__ == "__main__":
     ) 
         
     runner.run()
+
+    
