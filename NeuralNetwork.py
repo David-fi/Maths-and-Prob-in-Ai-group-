@@ -1,16 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import time, gc
-
+import random
+from random import randint
 from ActivationFunction import ActivationFunction
 from Dropout import Dropout
 from SoftmaxLayer import SoftmaxLayer
 from BatchNormalisation import BatchNormalisation
+from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
 
 class NeuralNetwork:
-    def __init__(self, activationFunction, input_size, output_size, hidden_units, dropout_rate, optimisers, l2_lambda=0.0): #  optimiser_type, was removed 
+    def __init__(self, activationFunction, input_size, output_size, hidden_units, dropout_rate, optimisers, l2_lambda=0.0): # patience, tolerance 
         print("Initializing the Neural Network...")
-
+        
+        # Ensure reproducibility of results!!! Spec requirement. 
+        np.random.seed(42)
+        random.seed(42)
+        
         # Parameters and hyperparameters initialisation 
         self.hidden_units = hidden_units
         self.dropout_rate = dropout_rate
@@ -121,7 +127,7 @@ class NeuralNetwork:
             self.weights[i] = self.optimiser.update_weights(self.weights[i], grads[f"dW{i}"])
             self.biases[i] = self.optimiser.update_weights(self.biases[i], grads[f"db{i}"]) 
 
-    def train(self, input_vector, target_vector, x_val, y_val, epochs, batch_size, patience, tolerance):
+    def train(self, input_vector, target_vector, x_val, y_val, epochs, batch_size): #, patience, tolerance):
         """
         Train the neural network on the provided dataset.
 
@@ -147,19 +153,16 @@ class NeuralNetwork:
         batch_indices = np.arange(0, num_samples, batch_size)
         print(f"Total batches per epoch: {len(batch_indices)}")
 
-        no_improvement_epochs = 0 
-        optimiser_index = 0
-        recent_val_losses = [] 
-        max_epochs_to_track = 5
 
         print("Training the Neural Network...")
         print(f"Using optimizer: {self.optimiser.__class__.__name__}") 
         for epoch in range(epochs):
-            # Update learning rate at the start of each epoch
+            # Update learning rate at the start of each epoch based on the original value passed in as an argument to be used during the first epoch
             self.optimiser.update_learning_rate(epoch)
 
             epoch_start = time.time()
             # Shuffle the dataset to ensure randomness in mini-batch selection
+            np.random.seed(42)  # Ensure reproducibility of results!!! Spec requirement. 
             perm = np.random.permutation(num_samples)
             input_vector, target_vector = input_vector[perm], target_vector[perm]
 
@@ -211,31 +214,14 @@ class NeuralNetwork:
                 f"Accuracy: | train {train_accuracy * 100:.2f}% , Val {val_accuracy * 100:.2f}% | "
                 f"Time: | batch {batch_time_total:.2f}s, Val {val_time:.2f}s, Total {epoch_time:.2f}s |")
         
-            recent_val_losses.append(val_loss) 
-            if len(recent_val_losses) > max_epochs_to_track:
-                recent_val_losses.pop(0)
-
-            # Compare the current validation loss with the best in the last 5 epochs
-            if epoch > max_epochs_to_track:
-                if val_loss <= min(recent_val_losses) - tolerance:
-                    no_improvement_epochs = 0 
-                else:
-                    no_improvement_epochs += 1 
-
-                # Handle optimizer switching or early stopping
-                if no_improvement_epochs >= patience:
-                    if optimiser_index < len(self.optimiserList) - 1:
-                        optimiser_index += 1
-                        self.optimiser = self.optimiserList[optimiser_index] 
-                        no_improvement_epochs = 0 
-                        print(f"Switching to optimizer: {self.optimiser.__class__.__name__}")
-                    else:
-                        print(f"All optimizers used. Early stopping at epoch {epoch + 1}.")
-                        break
+            # Early stopping condition: Stop if validation loss does not improve over the last 5 epochs
+            if epoch > 10 and (self.val_losses[-1] > min(self.val_losses[-5:])):
+                print(f"Early stopping at epoch {epoch + 1}")
+                break
+            
             # Clear memory
             del x_batch, y_batch, output
-            gc.collect()
-
+            gc.collect() 
 
 
     def run(self, input_data, true_labels, return_loss=False):
@@ -262,6 +248,8 @@ class NeuralNetwork:
             return accuracy, loss
         return accuracy
 
+
+
     def plot_loss(self):
         plt.figure(figsize=(10, 6))
         plt.plot(self.loss_values, label='Training Loss')
@@ -282,4 +270,6 @@ class NeuralNetwork:
         plt.legend()
         plt.grid()
         plt.show()
+        
+        
         
