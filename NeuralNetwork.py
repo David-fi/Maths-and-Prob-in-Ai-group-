@@ -2,14 +2,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time, gc
 import random
+from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
 from random import randint
 from ActivationFunction import ActivationFunction
 from Dropout import Dropout
 from SoftmaxLayer import SoftmaxLayer
 from BatchNormalisation import BatchNormalisation
-from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
+
 
 class NeuralNetwork:
+    
     def __init__(self, activationFunction, input_size, output_size, hidden_units, dropout_rate, optimisers, l2_lambda=0.0): # patience, tolerance 
         print("Initializing the Neural Network...")
         
@@ -53,7 +55,13 @@ class NeuralNetwork:
             # Add batch normalization layers to hidden layers only
             if i < len(layer_sizes) - 2:
                 self.batch_norm_layers.append(BatchNormalisation(layer_sizes[i + 1]))
+    
+    def __repr__(self):
+        return f"NeuralNetwork(activationFunction={self.activationFunction}, hidden_units={self.hidden_units}, " \
+               f"dropout_rate={self.dropout_rate}, " \
+               f"l2_lambda={self.l2_lambda})"
 
+             
     def forward(self, input_vector, training=True):
         """
         Perform forward propagation through the network.
@@ -218,10 +226,23 @@ class NeuralNetwork:
             if epoch > 10 and (self.val_losses[-1] > min(self.val_losses[-5:])):
                 print(f"Early stopping at epoch {epoch + 1}")
                 break
+             #   print("RETURNING val_accuracy, val_loss for use as SCORES in GridSearch")
+
             
             # Clear memory
             del x_batch, y_batch, output
             gc.collect() 
+            
+######################################################################################################################################################################################################
+# If commented out, GridSearch will train once for every hyperparameter conbination, but process will fail before best hyperparameter combination is evaluated.
+
+# If applied, GridSearch will fail to train according to number of epochs -- regardless of number of epochs, it will only train once for every hyperparameter conbination, 
+# however,it will be able to determine which is the best hyperparameter combination
+
+# Additonally, if uncommented when running CIFAR10Runner, it will cause the program to fail
+
+          # return train_accuracy
+######################################################################################################################################################################################################
 
 
     def run(self, input_data, true_labels, return_loss=False):
