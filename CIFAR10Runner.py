@@ -66,24 +66,41 @@ class CIFAR10Runner:
    
 def model_create():  
     # Initialize optimizers
-    adamOptimiser = AdamOptimiser(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01)
-    sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.001, momentum=0.9, decay=0.01)
-    sgdOptimiser = SGDOptimiser(learning_rate=0.001, decay=0.01) 
+    
+    best_adamOptimiser = AdamOptimiser(learning_rate=0.0001, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01) #val Val 51.58%, the better model cause Higher Validation Accuracy and Lower Validation Loss. Yes, greater gap but not yet concerning. so, tweak its other hyperparameters e.g. beta1=0.85 or beta2=0.99
+   # Lesser optimizer/hyperparameter combinations 
+    adamOptimiser2 = AdamOptimiser(learning_rate=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01) # Val 49.19%
+    adamOptimiser3 = AdamOptimiser(learning_rate=0.0005, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01) # Val 49.06%
+    
+    best_sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.005, momentum=0.9, decay=0.01) # Val 52.20%
+    # Lesser optimizer/hyperparameter combinations 
+    sgdMomentumOptimiser2 = SGDMomentumOptimiser(learning_rate=0.001, momentum=0.9, decay=0.01) # Val 51.23%
+    sgdMomentumOptimiser3 = SGDMomentumOptimiser(learning_rate=0.01, momentum=0.9, decay=0.01) #Val 50.71%
+    sgdMomentumOptimiser4 = SGDMomentumOptimiser(learning_rate=0.1, momentum=0.9, decay=0.01) # WORST ONE. Val 38.66% and very strange graph for loss. 
+    sgdMomentumOptimiser5 = SGDMomentumOptimiser(learning_rate=0.0001, momentum=0.9, decay=0.01) #Val 43.50%
+
+    best_sgdOptimiser = SGDOptimiser(learning_rate=0.01, decay=0.01) # Val 51.14% 
+    # Lesser optimizer/hyperparameter combinations 
+    sgdOptimiser2 = SGDOptimiser(learning_rate=0.001, decay=0.01) # Val 46.14%
+    sgdOptimiser3 = SGDOptimiser(learning_rate=0.0001, decay=0.01) # Val 20% by epoch 11, I stopped the process 
+    sgdOptimiser4 = SGDOptimiser(learning_rate=0.005, decay=0.01) # Val 49.99%
+    
     
     # Initialize the model
     model = NeuralNetwork(
-        activationFunction="relu",
-        input_size=32 * 32 * 3,
-        output_size=10,
-        hidden_units=[1024, 512, 256],
-        dropout_rate=0.2,  # 0.4
-        optimisers=[adamOptimiser],  # Use other optimizers if needed
-        l2_lambda=0.0,
-        epoch = 30,
-        batch_size = 128
+        activationFunction="relu", #VALUE TO BE CHANGED LATER
+        input_size=32 * 32 * 3, #VALUE TO BE CHANGED LATER
+        output_size=10, #VALUE TO BE CHANGED LATER
+        hidden_units=[1024, 512, 256], #VALUE TO BE CHANGED LATER
+        dropout_rate=0.2,  # 0.4 #VALUE TO BE CHANGED LATER
+        optimisers=[sgdOptimiser4], #VALUE TO BE CHANGED LATER
+        epoch = 30, #VALUE TO BE CHANGED LATER
+        batch_size = 128, #VALUE TO BE CHANGED LATER
+        l2_lambda=0.0 #VALUE TO BE CHANGED LATER
     )
     
     return model
+    
     
 
 
