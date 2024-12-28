@@ -1,7 +1,7 @@
 import os
 # disables oneDNN optimisations
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-
+ 
 import random 
 from random import randint
 import tensorflow as tf
