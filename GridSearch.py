@@ -17,7 +17,7 @@ from NeuralNetwork import NeuralNetwork
 from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
 from CIFAR10Runner import CIFAR10Runner
 
-
+       
 class GridSearch:
      def __init__(self, param_grid):
          # Ensure reproducibility of results!!! Spec requirement. 
@@ -36,9 +36,9 @@ class GridSearch:
         batch_size = param_grid['batch_size']
         l2_lambda = param_grid['l2_lambda']
         
-        best_adamOptimiser = AdamOptimiser(learning_rate=0.0001, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01) 
-        best_sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.005, momentum=0.9, decay=0.01)
-        best_sgdOptimiser = SGDOptimiser(learning_rate=0.01, decay=0.01)
+        best_adamOptimiser = AdamOptimiser(learning_rate=0.0001, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01) #val Val 51.58%
+        best_sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.005, momentum=0.9, decay=0.01) # Val 52.20%
+        best_sgdOptimiser = SGDOptimiser(learning_rate=0.01, decay=0.01) # Val 51.14% 
         
         # Nested loops to generate the Cartesian product manually
         for af in activationFunction:
@@ -97,6 +97,15 @@ if __name__ == "__main__":
         'l2_lambda': [1e-6, 1e-4]
     }
     
+    param_grid_11 = {
+        'activationFunction': ['relu'],
+        'hidden_units': [randint(128, 256) for _ in range((3))],
+        'dropout_rate': [0.1, 0.2, 0.5],
+        'epoch': [30],
+        'batch_size': [128],
+        'l2_lambda': [1e-6, 1e-4]
+    }
+    
     param_grid2 = {
         'activationFunction': ['relu', 'tanh', 'sigmoid'],
         'hidden_units': [randint(128, 256) for _ in range((3))],
@@ -106,17 +115,7 @@ if __name__ == "__main__":
         'l2_lambda': [1e-6, 1e-4]
     }
     
-    param_grid_for_quick_testing = {
-        'activationFunction': ['relu'],
-        'hidden_units': [randint(10, 20) for _ in range(randint(3, 5))],
-        'dropout_rate': [0.1],
-        'epoch': [30],
-        'batch_size': [128],
-        'l2_lambda': [1e-4]
-    }
-    
+
     #GridSearch(param_grid_for_quick_testing)
     GridSearch(param_grid2)
-
-
 
