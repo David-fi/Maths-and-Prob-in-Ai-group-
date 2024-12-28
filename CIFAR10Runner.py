@@ -1,7 +1,6 @@
 import os
 # disables oneDNN optimisations
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
- 
 import random 
 from random import randint
 import tensorflow as tf
@@ -13,7 +12,6 @@ global model, runner
     
 class CIFAR10Runner:
     def __init__(self, model): 
-        # Neural Network parameters
         self.model = model
         
     @staticmethod
@@ -38,21 +36,14 @@ class CIFAR10Runner:
         print(f"Validation dataset size: {x_val.shape[0]}")
         print(f"Test dataset size: {x_test.shape[0]}")
         
-        # self.x_train = x_train
-        # self.y_train = y_train
-        # self.x_val = x_val
-        # self.y_val = y_val
-        # self.x_test = x_test
-        # self.y_test = y_test
-        
-        return x_train, y_train, x_val, y_val, x_test, y_test
+        return x_train, y_train, x_val, y_val, x_test, y_test, output_size
 
     def run(self):
         """
         Train and evaluate the Neural Network.
         """
         print("Loading CIFAR-10 data...")
-        x_train, y_train, x_val, y_val, x_test, y_test = self.load_data()
+        x_train, y_train, x_val, y_val, x_test, y_test, output_size = self.load_data()
         
         self.model.train(x_train, y_train, x_val, y_val, return_val_accuracy=False)
 
@@ -101,8 +92,6 @@ def model_create():
     
     return model
     
-    
-
 
 
 if __name__ == "__main__":
@@ -114,5 +103,3 @@ if __name__ == "__main__":
     
     # Run the model
     runner.run()
-
-    
