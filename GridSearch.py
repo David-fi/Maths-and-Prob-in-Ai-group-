@@ -6,28 +6,24 @@
 CREDITS/REFERENCES: Code for this class was partly based on https://github.com/akmuthun/Time-Series-Neural-Network-Grid-Search.git 
 """
 import os
-# disables oneDNN optimisations
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-import random 
+import random
 from random import randint
-import tensorflow as tf
 import numpy as np
 from sklearn.model_selection import train_test_split
 from NeuralNetwork import NeuralNetwork
 from Optimisers import AdamOptimiser, SGDMomentumOptimiser, SGDOptimiser
 from CIFAR10Runner import CIFAR10Runner
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
-       
 class GridSearch:
-     def __init__(self, param_grid):
-         # Ensure reproducibility of results!!! Spec requirement. 
+    def __init__(self, param_grid):
+        # Ensure reproducibility of results
         np.random.seed(42)
         random.seed(42)
-         
+
+        # Load data
         x_train, y_train, x_val, y_val, x_test, y_test, output_size = CIFAR10Runner.load_data()
-        # Create an empty list to store the configurations
-        all_models = []
-        
+
         # Unpack the values from the param_grid dictionary
         activationFunction = param_grid['activationFunction']
         hidden_units = param_grid['hidden_units']
@@ -35,52 +31,79 @@ class GridSearch:
         epoch = param_grid['epoch']
         batch_size = param_grid['batch_size']
         l2_lambda = param_grid['l2_lambda']
-        
+
+        # Define optimizers
         best_adamOptimiser = AdamOptimiser(learning_rate=0.0001, beta1=0.9, beta2=0.999, epsilon=1e-8, decay=0.01) #val Val 51.58%
         best_sgdMomentumOptimiser = SGDMomentumOptimiser(learning_rate=0.005, momentum=0.9, decay=0.01) # Val 52.20%
         best_sgdOptimiser = SGDOptimiser(learning_rate=0.01, decay=0.01) # Val 51.14% 
-        
-        # Nested loops to generate the Cartesian product manually
+
+        # Generate configurations
+        configurations = []
         for af in activationFunction:
             for hu in hidden_units:
                 for dr in dropout_rate:
                     for ep in epoch:
                         for bs in batch_size:
                             for ll in l2_lambda:
+                                config = {
+                                    'activationFunction': af,
+                                    'input_size': 32 * 32 * 3,
+                                    'output_size': output_size,
+                                    'hidden_units': hu,  # Pass the list of three hidden layer sizes
+                                    'dropout_rate': dr,
+                                    'optimisers': [best_sgdMomentumOptimiser],
+                                    'epoch': ep,
+                                    'batch_size': bs,
+                                    'l2_lambda': ll
+                                }
+                                configurations.append(config)
+                                print(f"Model: {config['activationFunction']}, Optimiser: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}")
 
-                                model = NeuralNetwork(
-                                    activationFunction = af,
-                                    input_size = 32 * 32 * 3,
-                                    output_size = output_size,
-                                    hidden_units = [hu],
-                                    dropout_rate = dr,
-                                    optimisers = [best_sgdMomentumOptimiser],
-                                    epoch = ep,
-                                    batch_size = bs,
-                                    l2_lambda = ll
-                                ) 
+        print(f'Total configs: {len(configurations)}')
 
-                                all_models.append(model)
-                                
-                                
-        print(f'Total configs: {len(all_models)}')
-        
-        scores = [(model.train(x_train, y_train, x_val, y_val), model) for model in all_models]
-        scores2 = [(model.run(x_val, y_val), model) for _, model in scores]
+        # Train models in parallel
+        results = []
+        with ProcessPoolExecutor() as executor:
+            futures = {
+                executor.submit(self.train_and_evaluate_model, config, x_train, y_train, x_val, y_val): config
+                for config in configurations
+            }
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    results.append(result)
+                except Exception as e:
+                    print(f"An error occurred: {e}")
 
-        best_score, best_model = max(scores2, key=lambda x: x[0]) 
-        print(f"Best configuration: {best_model}", f"Print accuracy: {best_score}")
+        # Log all evaluated models and their scores to a file
+        with open("model_results.txt", "w") as log_file:
+            for score, config in results:
+                log_file.write(f"Model: {config['activationFunction']}, Optimiser: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}, Accuracy: {score}\n")
 
+        # Find the best model
+        best_score, best_model_config = max(results, key=lambda x: x[0])
+        print(f"Best configuration: {best_model_config['activationFunction']}, optimiser: {best_model_config['optimisers'][0].__class__.__name__}, hidden units: {best_model_config['hidden_units']}, dropout rate: {best_model_config['dropout_rate']}, epoch: {best_model_config['epoch']}, batch size: {best_model_config['batch_size']}, L2: {best_model_config['l2_lambda']}", f"Best accuracy: {best_score}")
 
-        print("List of models/different hyperparamenet combinations evaluated and their validation accuracy:")
-        for score, model in scores2:
-            print(f"Accuracy: {score}, Model: {model}") #Currently, FLAWED! MUST FIX!!! Cause now that return_val_accuracy=False, score in scores is not equal to val accuracy (I am not sure what is being printed)
-    
-        # Print the models list (all models generated during the search)
-        print("\nList of models/different hyperparamenet combinations evaluated:")
-        for model in all_models:
-            print(model)
+        # Print all evaluated models and their scores
+        print("\nList of models/different hyperparameter combinations evaluated and their validation accuracy:")
+        for score, config in results:
+            print(f"Accuracy: {score}, Config: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}, Accuracy: {score}")
 
+    def train_and_evaluate_model(self, config, x_train, y_train, x_val, y_val):
+        model = NeuralNetwork(
+            activationFunction=config['activationFunction'],
+            input_size=config['input_size'],
+            output_size=config['output_size'],
+            hidden_units=config['hidden_units'],  # Pass the list of three hidden layer sizes
+            dropout_rate=config['dropout_rate'],
+            optimisers=config['optimisers'],
+            epoch=config['epoch'],
+            batch_size=config['batch_size'],
+            l2_lambda=config['l2_lambda']
+        )
+        model.train(x_train, y_train, x_val, y_val)
+        accuracy = model.run(x_val, y_val)
+        return accuracy, config
         
     
 if __name__ == "__main__":
@@ -97,15 +120,6 @@ if __name__ == "__main__":
         'l2_lambda': [1e-6, 1e-4]
     }
     
-    param_grid_11 = {
-        'activationFunction': ['relu'],
-        'hidden_units': [randint(128, 256) for _ in range((3))],
-        'dropout_rate': [0.1, 0.2, 0.5],
-        'epoch': [30],
-        'batch_size': [128],
-        'l2_lambda': [1e-6, 1e-4]
-    }
-    
     param_grid2 = {
         'activationFunction': ['relu', 'tanh', 'sigmoid'],
         'hidden_units': [randint(128, 256) for _ in range((3))],
@@ -117,15 +131,13 @@ if __name__ == "__main__":
     }
     
     param_grid3 = {
-       'activationFunction': ['relu', 'tanh', 'sigmoid'],
-       'hidden_units': [[randint(128, 1024) for _ in range(3)] for _ in range(3)],
-       'dropout_rate': [0.1, 0.15, 0.2],
-       'epoch': [30],
-       'batch_size': [128],
-       'l2_lambda': [1e-6, 1e-5, 1e-4]
-
-}
-    
+        'activationFunction': ['relu', 'tanh', 'sigmoid'],
+        'hidden_units': [[randint(128, 512), randint(128, 512), randint(128, 512)] for _ in range(3)],  # Three hidden layers
+        'dropout_rate': [0.1, 0.15, 0.2],
+        'epoch': [30],
+        'batch_size': [128],
+        'l2_lambda': [1e-6, 1e-5, 1e-4]
+    }
 
     #GridSearch(param_grid_for_quick_testing)
     GridSearch(param_grid3)
