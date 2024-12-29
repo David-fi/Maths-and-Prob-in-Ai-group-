@@ -1,0 +1,26 @@
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 51.41
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 50.82
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 50.11
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 49.94
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 50.73
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 50.71
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 51.13
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 50.98
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 47.66
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 47.52
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 46.18
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [626, 268], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 46.18
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 51.44
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 51.84
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 51.60
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 51.02
+Model: Activation function: relu, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 50.50
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 51.60
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 51.49
+Model: Activation function: tanh, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 51.44
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 48.02
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.1, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 48.13
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 1e-06, Accuracy: 47.02
+Model: Activation function: sigmoid, Optimiser: SGDMomentumOptimiser, Hidden Units: [793, 381], Dropout Rate: 0.2, Epoch: 30, Batch Size: 128, L2 Lambda: 0.0001, Accuracy: 46.89
+
+Best configuration: relu, optimiser: SGDMomentumOptimiser, hidden units: [793, 381], dropout rate: 0.1, epoch: 30, batch size: 128, L2: 0.0001 Best accuracy: 51.84
