@@ -1,11 +1,18 @@
 import numpy as np
 
 class ActivationFunction:
-    def __init__(self, activationFunction):
+    def _init_(self, activationFunction):
         validActivation = ["sigmoid", "relu", "tanh"]
         if activationFunction not in validActivation:
             raise ValueError(f"{activationFunction} is not a valid activation function!")
         self.activationFunction = activationFunction
+        self.name = activationFunction
+    
+    def str(self):
+        return self.name
+    
+    def repr(self):
+        return f"ActivationFunction({self.name})"
 
     def __reluForward(self, x):
         '''
