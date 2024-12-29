@@ -76,7 +76,7 @@ class GridSearch:
                     print(f"An error occurred: {e}")
 
         # Log all evaluated models and their scores to a file
-        with open("model_results.txt", "w") as log_file:
+        with open("model_results3.txt", "w") as log_file:
             for score, config in results:
                 log_file.write(f"Model: Activation function: {config['activationFunction']}, Optimiser: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}, Accuracy: {score * 100:.2f}\n")
 
@@ -112,13 +112,13 @@ if __name__ == "__main__":
     random.seed(42)
     
     param_grid1 = {
-        'activationFunction': ['relu', 'tanh', 'sigmoid'],
-        'hidden_units': [[randint(512, 1024), randint(256, 512), randint(128, 256)] for _ in range(3)],
-        'dropout_rate': [0.1, 0.2, 0.5],
-        'epoch': [10, 15, 30, 40],
-        'batch_size': [16, 128],
-        'l2_lambda': [1e-6, 1e-4]
-    }
+            'activationFunction': ['relu', 'tanh', 'sigmoid'],
+            'hidden_units': [[randint(512, 1024), randint(256, 512)] for _ in range(2)],
+            'dropout_rate': [0.1, 0.2],
+            'epoch': [30],
+            'batch_size': [128],
+            'l2_lambda': [1e-6, 1e-4]
+        }
         
     param_grid3 = {
         'activationFunction': ['relu', 'tanh', 'sigmoid'],
@@ -140,4 +140,4 @@ if __name__ == "__main__":
     }
     
     #GridSearch(param_grid_for_quick_testing)
-    GridSearch(param_grid4)
+    GridSearch(param_grid1)
