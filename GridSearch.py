@@ -54,7 +54,7 @@ class GridSearch:
                                     output_size = output_size,
                                     hidden_units = [hu],
                                     dropout_rate = dr,
-                                    optimisers = [best_adamOptimiser],
+                                    optimisers = [best_sgdMomentumOptimiser],
                                     epoch = ep,
                                     batch_size = bs,
                                     l2_lambda = ll
@@ -65,7 +65,7 @@ class GridSearch:
                                 
         print(f'Total configs: {len(all_models)}')
         
-        scores = [(model.train(x_train, y_train, x_val, y_val, return_val_accuracy=False), model) for model in all_models]
+        scores = [(model.train(x_train, y_train, x_val, y_val), model) for model in all_models]
         scores2 = [(model.run(x_val, y_val), model) for _, model in scores]
 
         best_score, best_model = max(scores2, key=lambda x: x[0]) 
@@ -96,9 +96,9 @@ if __name__ == "__main__":
         'batch_size': [16, 128],
         'l2_lambda': [1e-6, 1e-4]
     }
-        
-    param_grid2 = {
-        'activationFunction': ['relu', 'tanh', 'sigmoid'],
+    
+    param_grid_11 = {
+        'activationFunction': ['relu'],
         'hidden_units': [randint(128, 256) for _ in range((3))],
         'dropout_rate': [0.1, 0.2, 0.5],
         'epoch': [30],
@@ -106,14 +106,26 @@ if __name__ == "__main__":
         'l2_lambda': [1e-6, 1e-4]
     }
     
-    param_grid3 = {
+    param_grid2 = {
         'activationFunction': ['relu', 'tanh', 'sigmoid'],
-        'hidden_units': [[randint(128, 1024) for _ in range(3)] for _ in range(3)],
-        'dropout_rate': [0.1, 0.15, 0.2],
+        'hidden_units': [randint(128, 256) for _ in range((3))],
+        'dropout_rate': [0.1, 0.2, 0.5],
         'epoch': [30],
         'batch_size': [128],
-        'l2_lambda': [1e-6, 1e-5, 1e-4]
-    } 
+        'l2_lambda': [1e-6, 1e-4]
+    
+    }
+    
+    param_grid3 = {
+       'activationFunction': ['relu', 'tanh', 'sigmoid'],
+       'hidden_units': [[randint(128, 1024) for _ in range(3)] for _ in range(3)],
+       'dropout_rate': [0.1, 0.15, 0.2],
+       'epoch': [30],
+       'batch_size': [128],
+       'l2_lambda': [1e-6, 1e-5, 1e-4]
+
+}
+    
 
     #GridSearch(param_grid_for_quick_testing)
     GridSearch(param_grid3)
