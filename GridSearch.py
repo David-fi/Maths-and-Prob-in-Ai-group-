@@ -113,7 +113,7 @@ if __name__ == "__main__":
     
     param_grid1 = {
         'activationFunction': ['relu', 'tanh', 'sigmoid'],
-        'hidden_units': [[randint(128, 512), randint(128, 512), randint(128, 512)] for _ in range(3)],
+        'hidden_units': [[randint(1024, 512), randint(512, 256), randint(256, 128)] for _ in range(3)],
         'dropout_rate': [0.1, 0.2, 0.5],
         'epoch': [10, 15, 30, 40],
         'batch_size': [16, 128],
@@ -129,15 +129,15 @@ if __name__ == "__main__":
         'l2_lambda': [1e-6, 1e-5, 1e-4]
     }
 
-    param_grid2 = {
+    param_grid4 = {
         'activationFunction': ['relu', 'tanh', 'sigmoid'],
-        'hidden_units':[[randint(128, 512), randint(128, 512), randint(128, 512)] for _ in range(3)],
-        'dropout_rate': [0.1, 0.2, 0.5],
+        'hidden_units':[[randint(455, 505), randint(185, 235), randint(140, 190)] for _ in range(3)],
+        'dropout_rate': [0.15, 0.2, 0.25],
         'epoch': [30],
         'batch_size': [128],
-        'l2_lambda': [1e-6, 1e-4]
+        'l2_lambda': [0.000005, 1e-5, 0.00005]
     
     }
     
     #GridSearch(param_grid_for_quick_testing)
-    GridSearch(param_grid3)
+    GridSearch(param_grid4)
