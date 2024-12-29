@@ -78,16 +78,16 @@ class GridSearch:
         # Log all evaluated models and their scores to a file
         with open("model_results.txt", "w") as log_file:
             for score, config in results:
-                log_file.write(f"Model: {config['activationFunction']}, Optimiser: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}, Accuracy: {score}\n")
+                log_file.write(f"Model: Activation function: {config['activationFunction']}, Optimiser: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}, Accuracy: {score * 100:.2f}\n")
 
         # Find the best model
         best_score, best_model_config = max(results, key=lambda x: x[0])
-        print(f"Best configuration: {best_model_config['activationFunction']}, optimiser: {best_model_config['optimisers'][0].__class__.__name__}, hidden units: {best_model_config['hidden_units']}, dropout rate: {best_model_config['dropout_rate']}, epoch: {best_model_config['epoch']}, batch size: {best_model_config['batch_size']}, L2: {best_model_config['l2_lambda']}", f"Best accuracy: {best_score}")
+        print(f"Best configuration: {best_model_config['activationFunction']}, optimiser: {best_model_config['optimisers'][0].__class__.__name__}, hidden units: {best_model_config['hidden_units']}, dropout rate: {best_model_config['dropout_rate']}, epoch: {best_model_config['epoch']}, batch size: {best_model_config['batch_size']}, L2: {best_model_config['l2_lambda']}", f"Best accuracy: {best_score * 100:.2f}")
 
         # Print all evaluated models and their scores
         print("\nList of models/different hyperparameter combinations evaluated and their validation accuracy:")
         for score, config in results:
-            print(f"Accuracy: {score}, Config: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}, Accuracy: {score}")
+            print(f"Accuracy: {score}, Config: {config['optimisers'][0].__class__.__name__}, Hidden Units: {config['hidden_units']}, Dropout Rate: {config['dropout_rate']}, Epoch: {config['epoch']}, Batch Size: {config['batch_size']}, L2 Lambda: {config['l2_lambda']}, Accuracy: {score * 100:.2f}")
 
     def train_and_evaluate_model(self, config, x_train, y_train, x_val, y_val):
         model = NeuralNetwork(
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     
     param_grid1 = {
         'activationFunction': ['relu', 'tanh', 'sigmoid'],
-        'hidden_units': [[randint(1024, 512), randint(512, 256), randint(256, 128)] for _ in range(3)],
+        'hidden_units': [[randint(512, 1024), randint(256, 512), randint(128, 256)] for _ in range(3)],
         'dropout_rate': [0.1, 0.2, 0.5],
         'epoch': [10, 15, 30, 40],
         'batch_size': [16, 128],

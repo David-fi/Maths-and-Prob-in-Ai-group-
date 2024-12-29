@@ -1,7 +1,7 @@
 import numpy as np
 
 class ActivationFunction:
-    def _init_(self, activationFunction):
+    def __init__(self, activationFunction):
         validActivation = ["sigmoid", "relu", "tanh"]
         if activationFunction not in validActivation:
             raise ValueError(f"{activationFunction} is not a valid activation function!")
